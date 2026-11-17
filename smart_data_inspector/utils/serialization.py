@@ -25,6 +25,11 @@ def value_key(value: Any) -> tuple:
     return ("string", value)
 
 
+def value_keys(series: pd.Series) -> pd.Series:
+    """Vectorised value_key: pure string columns already compare correctly as themselves."""
+    return series if pd.api.types.is_string_dtype(series) else series.map(value_key)
+
+
 def to_json_safe(value: Any) -> Any:
     """Convert dataclasses and NumPy scalars; unavailable/nonfinite values become null."""
     if value is None or value is pd.NA or value is pd.NaT:
@@ -46,7 +51,9 @@ def to_json_safe(value: Any) -> Any:
         return converted if math.isfinite(converted) and Decimal(str(converted)) == value else str(value)
     if isinstance(value, float) and not math.isfinite(value):
         return None
-    return value
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)  # dates, times and other scalars become readable text
 
 
 def dumps_json(value: Any, **kwargs: Any) -> str:

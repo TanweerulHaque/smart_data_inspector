@@ -1,9 +1,0 @@
-import pandas as pd
-
-from smart_data_inspector.profiling.example import profile_example
-
-
-def test_example_is_small_deterministic_and_pure():
-    frame = pd.DataFrame({"value": [1, 2]})
-    assert profile_example(frame).count == 2
-    assert frame["value"].tolist() == [1, 2]

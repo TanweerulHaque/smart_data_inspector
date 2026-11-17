@@ -7,12 +7,10 @@ from pathlib import Path
 
 import pytest
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
 
 def run_cli(*arguments):
     return subprocess.run([sys.executable, "-m", "smart_data_inspector", "inspect", *map(str, arguments)],
-                          cwd=PROJECT_ROOT, env={**os.environ, "NO_COLOR": "1", "COLUMNS": "240"},
+                          cwd=Path.cwd(), env={**os.environ, "NO_COLOR": "1", "COLUMNS": "240"},
                           capture_output=True, check=False, text=True, encoding="utf-8", timeout=15)
 
 
@@ -30,13 +28,13 @@ def test_rich_markup_in_columns_and_findings_is_plain_text(tmp_path, suffix, tex
     assert result.stderr == ""
     assert "Traceback" not in result.stdout
     assert output.exists()
-    assert "Report:" in result.stdout
+    assert "Report (markdown):" in result.stdout
 
 
 @pytest.mark.parametrize("text", ['[{"x":"\\ud800"}]', '[{"\\ud800":1}]'])
 def test_invalid_unicode_in_json_preserves_existing_report(tmp_path, text):
-    source = tmp_path / "input.json"
-    source.write_text(text)
+    source = tmp_path / "input.jsonl"  # the streaming .json parser replaces lone surrogates instead
+    source.write_text(text[1:-1])
     output = tmp_path / "report.md"
     output.write_text("keep this report")
     result = run_cli(source, "-o", output)

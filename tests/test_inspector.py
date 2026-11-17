@@ -1,6 +1,5 @@
 """Exact summaries and quality-rule behavior for the public inspection API."""
 
-import copy
 import json
 import math
 import tempfile
@@ -18,7 +17,7 @@ class InspectionConfigTests(unittest.TestCase):
         self.assertEqual(config.missing_threshold, 0.05)
         self.assertEqual(config.top_values, 5)
         self.assertEqual(config.iqr_multiplier, 1.5)
-        self.assertEqual(set(config.missing_values), {"", "na", "n/a", "null", "none", "nan"})
+        self.assertEqual(set(config.missing_values), {"", "NA", "N/A", "n/a", "#N/A", "NULL", "null", "NaN", "nan"})
         self.assertEqual(InspectionConfig(missing_threshold=1, top_values=1).top_values, 1)
 
     def test_rejects_out_of_range_and_nonfinite_thresholds(self):
@@ -150,29 +149,29 @@ class InspectDatasetTests(unittest.TestCase):
                 self.assertAlmostEqual(numeric.mean, 1 / 3)
                 self.assertTrue(math.isfinite(numeric.mean))
 
-    def test_default_missing_markers_exclude_zero_and_false_without_mutating_input(self):
-        values = [None, "", " \t", "NA", " n/A ", "NULL", " none ", "NaN", 0, False, "ok"]
+    def test_default_missing_markers_exclude_zero_and_false(self):
+        values = [None, "", " \t", "NA", " n/a ", "NULL", " null ", "NaN", 0, False, "ok"]
         dataset = self.load(json.dumps([{"v":value} for value in values]))
-        original_rows = [row[:] for row in dataset.rows]
         inspection = inspect_dataset(dataset)
         column = inspection.columns[0]
         self.assertEqual(column.missing_count, 8)
         self.assertAlmostEqual(column.missing_fraction, 8 / 11)
         self.assertEqual(column.distinct_count, 3)
         self.assertEqual(column.type_counts, {"integer": 1, "boolean": 1, "string": 1})
-        self.assertEqual(dataset.rows, original_rows)
+        self.assertEqual(dataset.frame["v"].iloc[8:].tolist(), [0, False, "ok"])
         self.assertEqual(inspection.config, InspectionConfig())
 
-    def test_custom_missing_markers_replace_defaults_and_casefold_unicode(self):
+    def test_custom_missing_markers_replace_defaults_and_are_case_sensitive(self):
         values = [None, "", " \t", " MISSING ", "N/A", "NA", "null", "nan", "none", "Straße", "STRASSE"]
         dataset = self.load(json.dumps([{"v":value} for value in values]))
         column = inspect_dataset(dataset, InspectionConfig(
-            missing_values=(" missing ", "strasse"), top_values=10,
+            missing_values=(" MISSING ", "Straße"), top_values=10,
         )).columns[0]
-        self.assertEqual(column.missing_count, 6)
-        self.assertEqual(column.type_counts, {"string": 5})
-        self.assertEqual(column.distinct_count, 5)
-        self.assertEqual({value for value, _ in column.top_values}, {"N/A", "NA", "null", "nan", "none"})
+        self.assertEqual(column.missing_count, 5)
+        self.assertEqual(column.type_counts, {"string": 6})
+        self.assertEqual(column.distinct_count, 6)
+        self.assertEqual({value for value, _ in column.top_values}, {"N/A", "NA", "null", "nan", "none", "STRASSE"})
+        self.assertEqual(column.marker_conversions, {"": 2, "MISSING": 1, "Straße": 1})
 
     def test_duplicates_normalize_missing_cells_across_entire_rows(self):
         inspection = inspect_dataset(self.load(
@@ -240,25 +239,23 @@ class InspectDatasetTests(unittest.TestCase):
         self.assertIn(finding.evidence, finding.message)
         self.assertIn(finding.explanation, finding.message)
 
-    def test_inspection_does_not_mutate_dataset_or_source_across_configurations(self):
-        dataset = self.load('v,label\n1, NA \n2,ok\n3,ok\n100, NA \n', 'csv')
-        original = copy.deepcopy(dataset)
+    def test_source_file_is_never_modified_and_configurations_are_independent(self):
+        text = 'v,label\n1, NA \n2,ok\n3,ok\n100, NA \n'
+        dataset = self.load(text, 'csv')
         source_bytes = dataset.source.read_bytes()
         first = inspect_dataset(dataset)
-        second = inspect_dataset(dataset, InspectionConfig(missing_values=("ok",), top_values=1,
-                                                           iqr_multiplier=3))
-        self.assertEqual(dataset, original)
+        second = inspect_dataset(self.load(text, 'csv'), InspectionConfig(
+            missing_values=("ok",), top_values=1, iqr_multiplier=3))
         self.assertEqual(dataset.source.read_bytes(), source_bytes)
         self.assertEqual(first.columns[1].top_values, [("ok", 2)])
+        self.assertEqual(first.columns[1].marker_conversions, {"NA": 2})
         self.assertEqual(second.columns[1].top_values, [(" NA ", 2)])
         self.assertEqual(first.config, InspectionConfig())
-        self.assertEqual(first.columns, inspect_dataset(dataset).columns)
+        self.assertEqual(first.columns, inspect_dataset(self.load(text, 'csv')).columns)
 
     def test_zero_rows_are_safe_for_the_reusable_api(self):
-        dataset = Dataset(self.root / "not-on-disk.csv", "CSV", ["v", "label"], [])
-        original = copy.deepcopy(dataset)
+        dataset = Dataset.from_rows(self.root / "not-on-disk.csv", "CSV", ["v", "label"], [])
         inspection = inspect_dataset(dataset)
-        self.assertEqual(dataset, original)
         self.assertEqual(inspection.duplicate_rows, 0)
         self.assertEqual({finding.check_name for finding in inspection.findings}, {"All-null column", "Potential duplicate columns"})
         self.assertIsNone(inspection.file_size_bytes)

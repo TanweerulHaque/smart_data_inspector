@@ -33,3 +33,14 @@ def test_inclusive_threshold_changes_severity_without_hiding_missing_values(
     assert ">=" in finding.rule
     assert f"{threshold:.1%}" in finding.rule
     assert "no imputation" in finding.explanation
+
+
+def test_marker_conversions_are_reported_and_short_codes_are_flagged_as_ambiguous():
+    import pandas as pd
+
+    from smart_data_inspector.quality.missingness.checks import check_marker_conversions
+    (plain,) = check_marker_conversions("status", {"N/A": 2, "": 1}, pd.Series(["ok", "failed"]))
+    assert plain.check_name == "Missing-value markers converted" and "'N/A' ×2" in plain.evidence
+    (ambiguous,) = check_marker_conversions("element", {"NA": 1}, pd.Series(["K", "Cl", "Fe"]))
+    assert ambiguous.check_name == "Ambiguous missing-value marker" and ambiguous.severity == "warning"
+    assert check_marker_conversions("x", {"": 3}, pd.Series(["a"])) == []

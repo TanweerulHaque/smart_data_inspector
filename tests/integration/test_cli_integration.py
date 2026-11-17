@@ -1,10 +1,8 @@
 """End-to-end tests for the current run-specific narrative workflow."""
 
 import json
-import shutil
 import subprocess
 import sys
-from pathlib import Path
 
 import pytest
 
@@ -42,15 +40,29 @@ def test_nested_json_is_a_clear_unsupported_format_and_creates_no_report(cli, tm
     assert not report.exists()
 
 
-def test_two_default_runs_have_distinct_report_and_asset_directories(cli, tmp_path):
-    source = tmp_path / "input.csv"
+def test_default_output_is_the_current_directory_and_runs_never_collide(cli, tmp_path):
+    source = tmp_path / "data" / "input.csv"
+    source.parent.mkdir()
     source.write_text("value\n1\n2\n", encoding="utf-8")
-    reports_dir = Path(__file__).resolve().parents[2] / "reports"
-    before = set(reports_dir.glob("input_*.md"))
-    first, second = cli("inspect", source), cli("inspect", source)
-    assert first.returncode == second.returncode == 0
-    created = set(reports_dir.glob("input_*.md")) - before
-    assert len(created) == 2
-    for report in created:
-        report.unlink()
-        shutil.rmtree(reports_dir.parent / "assets" / report.stem)
+    first, second = cli("inspect", source), cli("inspect", source)  # cwd is tmp_path (conftest)
+    assert first.returncode == second.returncode == 0, first.stderr + second.stderr
+    reports = sorted(tmp_path.glob("input_*.md"))
+    assert len(reports) == 2
+    for report in reports:
+        assets = report.with_name(report.stem + "_assets")
+        assert assets.is_dir() and any(assets.glob("*.png"))
+        assert f"]({assets.name}/" in report.read_text(encoding="utf-8")
+    assert not list(tmp_path.glob(".sdi-*"))
+
+
+def test_json_format_writes_machine_readable_report(cli, tmp_path):
+    source = tmp_path / "input.csv"
+    source.write_text("value,label\n1,a\n2,b\n2,b\n", encoding="utf-8")
+    result = cli("inspect", source, "--format", "json", "--no-charts", "-o", tmp_path / "out")
+    assert result.returncode == 0, result.stderr
+    (report,) = (tmp_path / "out").glob("input_*.json")
+    data = json.loads(report.read_text(encoding="utf-8"))
+    assert data["overview"]["rows"] == 3 and data["overview"]["duplicate_rows"] == 1
+    assert {item["check"] for item in data["findings"]} >= {"Duplicate rows"}
+    assert data["charts"]["status"][0]["status"] == "disabled"
+    assert not list((tmp_path / "out").glob("*.md"))

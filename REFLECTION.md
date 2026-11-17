@@ -1,10 +1,32 @@
-# Reflection draft
+# Reflection
 
-- **Design:** Extended the working CLI rather than replacing it. Small profiling/quality/chart modules, shared result dataclasses and explicit orchestration keep new checks independently testable. The Markdown report now has a first-page research summary, narrative chapters and a technical appendix.
-- **Libraries:** Pandas and NumPy perform the calculations, Matplotlib creates static `Agg` PNGs, Rich presents terminal output, and pytest runs tests. The original strict parsers retain scalar evidence. The tool remains offline and does not depend on fg-data-profiling or ydata-profiling.
-- **Methodology:** Missingness uses a configurable 5% default; duplicates count additional normalized full rows. Checks cover type conflicts, IQR candidates, constants, zeros, formatting, duplicate columns and correlations. Findings retain severity, evidence, rule and interpretation. Statistical prompts are not errors or scientific validation.
-- **Demonstrations:** Used the supplied CSV unchanged. A separate script extracts eleven scalar features from the unsupported nested structures mapping, then creates a flat JSON copy containing omitted/null values, unexpected text, an extreme value, and an exact duplicate. Originals remain unchanged.
-- **Limitations:** Processing is in memory; float64 statistics have precision/range limits. Identifier/type inference is heuristic. Date inference accepts only ISO-like strings. Small-sample/zero-IQR screens are skipped. No automatic cleaning, domain validation or causal conclusion is claimed. Only macOS execution is verified.
-- **AI assistance and verification:** Used coding-agent assistance. Run and record the final pytest, CSV/JSON CLI, report/chart and packaging checks before submission; the author must personally review the result.
-- **Time spent:** [AUTHOR: enter actual implementation, review, and verification time.]
-- **Personal review:** [AUTHOR: describe your own review and understanding before submission.]
+- **Decisions**
+  - The CLI and Streamlit UI share one workflow: load, profile, chart, render Markdown/JSON, then move all outputs into place together, so a failed run leaves nothing half-written.
+  - Each profiling step and quality rule is a small function returning a dataclass, tested alone.
+  - Loaders return DataFrames:
+    - CSV: pyarrow streaming reader, strict about row length, quotes and UTF-8.
+    - JSON: ijson streaming.
+    - JSON Lines and Parquet are also supported.
+  - Missing-value markers match exactly, including case, so `Na` (sodium) is kept. Conversions are counted; suspicious ones are flagged.
+- **What the report explains**
+  - Types, missing-value patterns, duplicates.
+  - Numeric, categorical, text and date summaries.
+  - Rules for outliers, mixed types, constant columns, inconsistent labels, correlations and problem dates.
+  - Each finding records evidence, rule and reason; skipped charts are listed with a reason.
+- **Demonstrations**
+  - Supplied CSV, unchanged.
+  - Flat JSON derived from the supplied nested file, with injected problems.
+  - Parquet copy of the CSV.
+  - `--flatten-json` reads the original nested file.
+- **Limitations**
+  - Data stays in memory; profiling uses per-value Python checks (about 17 s, 0.8 GB for 200k × 18).
+  - Type and date inference are heuristic; only ISO-like dates are parsed.
+  - Streamed `.json` replaces invalid lone surrogates with `?`.
+  - No unit, domain or causal validation; macOS only.
+- **AI assistance and verification**
+  - Claude Code assisted with design review, implementation, refactoring and tests. [AUTHOR: add other tools.]
+  - Verified with 444 tests and end-to-end CLI runs on CSV, JSON and Parquet.
+  - UI checked in headless Chrome: metrics, report, charts, findings, downloads.
+  - Wheel installed outside the repository; 200k-row file timed.
+- **Time spent:** [AUTHOR: enter actual time.]
+- **Personal review:** [AUTHOR: describe your own review before submission.]

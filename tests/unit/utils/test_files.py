@@ -35,3 +35,17 @@ def test_replace_failure_keeps_existing_report_and_removes_temporary_file(tmp_pa
         write_text_atomic(path, "replacement")
     assert path.read_text() == "keep"
     assert list(tmp_path.iterdir()) == [path]
+
+
+def test_commit_staged_restores_everything_when_a_move_fails(tmp_path):
+    from smart_data_inspector.utils.files import commit_staged
+    report, charts = tmp_path / "r.md", tmp_path / "r_assets"
+    report.write_text("old")
+    staged_report, staged_charts = tmp_path / "new.md", tmp_path / "new_assets"
+    staged_report.write_text("new")
+    staged_charts.mkdir()
+    with pytest.raises(OSError):
+        commit_staged([(staged_charts, charts), (staged_report, report), (tmp_path / "missing", tmp_path / "x")])
+    assert report.read_text() == "old"
+    assert not charts.exists()
+    assert not list(tmp_path.glob(".*sdi-backup*"))

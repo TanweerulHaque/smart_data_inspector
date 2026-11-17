@@ -8,12 +8,10 @@ Use a **module** for one cohesive analysis, for example `smart_data_inspector/pr
 
 Keep names lowercase with underscores. Unit tests use deterministic, small DataFrames and stay beside their functional category. Integration/CLI tests belong in `tests/integration/`.
 
-Copyable starting points are available in `templates/profiling_module.py.tmpl`, `templates/quality_check.py.tmpl`, and `templates/test_feature.py.tmpl`. Copy one, rename `example`, then register the function explicitly. This keeps a new `.py` file and its direct test intentionally boring:
+An existing small module such as `profiling/text.py` (with `tests/unit/profiling/test_text.py`) is a good starting point to copy. Run one test file with:
 
 ```sh
-cp templates/profiling_module.py.tmpl smart_data_inspector/profiling/my_measure.py
-cp templates/test_feature.py.tmpl tests/unit/profiling/test_my_measure.py
-make test-file FILE=tests/unit/profiling/test_my_measure.py
+make test ARGS=tests/unit/profiling/test_my_measure.py
 ```
 
 ## Add one profiling module
@@ -80,7 +78,7 @@ For a substantial family such as `quality/schema/`:
 The matching directory is itself the category test command, so no central test registry needs editing:
 
 ```sh
-make test-dir DIR=tests/unit/quality/schema
+make test ARGS=tests/unit/quality/schema
 ```
 
 ## Add a chart
@@ -111,8 +109,8 @@ Add a threshold to frozen `InspectionConfig`, validate it in `__post_init__`, do
 Useful commands:
 
 ```sh
-make test-file FILE=tests/unit/profiling/test_missingness.py
-make test-dir DIR=tests/unit/quality
+make test ARGS=tests/unit/profiling/test_missingness_profiler.py
+make test ARGS=tests/unit/quality
 pytest tests/unit/profiling/ -q
 pytest -q
 ```

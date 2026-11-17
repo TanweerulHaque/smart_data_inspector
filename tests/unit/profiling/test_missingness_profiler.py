@@ -3,7 +3,6 @@
 import numpy as np
 import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal
 
 from smart_data_inspector.profiling.missingness.profiler import (
     normalize_missing,
@@ -24,34 +23,41 @@ def test_counts_include_all_null_kinds_but_not_zero_or_false(values, expected):
     pd.testing.assert_series_equal(series, before)
 
 
-def test_normalization_returns_independent_frame_and_preserves_nonmissing_tokens():
-    values = [None, np.nan, pd.NA, "", " \t", " NA ", "n/A", "NULL", "none", "NaN",
+def test_normalization_is_in_place_and_preserves_nonmissing_tokens():
+    values = [None, np.nan, pd.NA, "", " \t", " NA ", "n/a", "NULL", "null", "NaN",
               0, False, "  keep  ", "001"]
     frame = pd.DataFrame({"value": values, "other": list(range(len(values)))}, dtype=object)
-    before = frame.copy(deep=True)
-    normalized = normalize_missing(frame)
-    assert normalized is not frame
-    assert normalized["value"].iloc[:10].isna().all()
-    assert normalized["value"].iloc[10:].tolist() == [0, False, "  keep  ", "001"]
-    assert type(normalized["value"].iloc[10]) is int
-    assert type(normalized["value"].iloc[11]) is bool
-    assert normalized["other"].tolist() == list(range(len(values)))
-    assert_frame_equal(frame, before)
-    normalized.loc[0, "other"] = "changed"
-    assert_frame_equal(frame, before)
+    conversions = normalize_missing(frame)
+    assert frame["value"].iloc[:10].isna().all()
+    assert frame["value"].iloc[10:].tolist() == [0, False, "  keep  ", "001"]
+    assert type(frame["value"].iloc[10]) is int
+    assert type(frame["value"].iloc[11]) is bool
+    assert frame["other"].tolist() == list(range(len(values)))
+    assert conversions == {"value": {"": 2, "NA": 1, "n/a": 1, "NULL": 1, "null": 1, "NaN": 1}}
 
 
-def test_custom_markers_replace_defaults_and_use_trimmed_unicode_casefold():
+def test_custom_markers_replace_defaults_trimmed_and_case_sensitive():
     frame = pd.DataFrame({"v": [None, "", " \t", " MISSING ", "Straße", "STRASSE",
                                  "NA", "null", "nan", "none"]}, dtype=object)
-    normalized = normalize_missing(frame, (" missing ", "strasse"))
-    series = normalized["v"]
-    assert isinstance(series, pd.Series)
-    assert series.iloc[:6].isna().all()
-    assert series.iloc[6:].tolist() == ["NA", "null", "nan", "none"]
-    assert profile_missingness(series).missing_count == 6
+    normalize_missing(frame, (" MISSING ", "Straße"))
+    assert frame["v"].iloc[:5].isna().all()
+    assert frame["v"].iloc[5:].tolist() == ["STRASSE", "NA", "null", "nan", "none"]
+    assert profile_missingness(frame["v"]).missing_count == 5
+
+
+def test_default_markers_keep_case_variants_such_as_sodium():
+    frame = pd.DataFrame({"element": ["Na", "NA", "na", "None", "none", "K", " NA "]}, dtype=object)
+    assert normalize_missing(frame) == {"element": {"NA": 2}}
+    assert frame["element"].tolist() == ["Na", None, "na", "None", "none", "K", None]
+
+
+def test_pyarrow_string_columns_are_normalized_too():
+    frame = pd.DataFrame({"s": pd.array(["a", "NA", ""], dtype=pd.StringDtype("pyarrow"))})
+    assert normalize_missing(frame) == {"s": {"NA": 1, "": 1}}
+    assert frame["s"].isna().tolist() == [False, True, True]
 
 
 def test_zero_row_normalization_retains_schema():
     frame = pd.DataFrame(columns=["a", "b"], dtype=object)
-    assert_frame_equal(normalize_missing(frame), frame)
+    assert normalize_missing(frame) == {}
+    assert list(frame.columns) == ["a", "b"]

@@ -1,0 +1,1145 @@
+{
+  "schema_version": 1,
+  "tool": {
+    "name": "smart-data-inspector",
+    "version": "0.3.0"
+  },
+  "generated_at": "2026-11-17T15:22:36+00:00",
+  "source": {
+    "name": "structures_with_issues.json",
+    "path": "data/demo/structures_with_issues.json",
+    "format": "JSON",
+    "file_size_bytes": 7434
+  },
+  "overview": {
+    "rows": 21,
+    "columns": 11,
+    "column_names": [
+      "material_id",
+      "lattice_a",
+      "lattice_b",
+      "lattice_c",
+      "lattice_alpha",
+      "lattice_beta",
+      "lattice_gamma",
+      "num_sites",
+      "num_distinct_elements",
+      "elements",
+      "lattice_volume"
+    ],
+    "inferred_types": {
+      "material_id": "string",
+      "lattice_a": "number",
+      "lattice_b": "number",
+      "lattice_c": "number",
+      "lattice_alpha": "number",
+      "lattice_beta": "number",
+      "lattice_gamma": "number",
+      "num_sites": "integer",
+      "num_distinct_elements": "integer",
+      "elements": "string",
+      "lattice_volume": "mixed"
+    },
+    "missing_cells": 5,
+    "total_cells": 231,
+    "completeness": 0.9783549783549783,
+    "duplicate_rows": 1,
+    "memory_bytes": 20429,
+    "finding_count": 11,
+    "findings_by_severity": {
+      "info": 8,
+      "warning": 3
+    }
+  },
+  "columns": [
+    {
+      "name": "material_id",
+      "inferred_type": "string",
+      "observed_types": {
+        "string": 21
+      },
+      "likely_identifier": true,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 20,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": "mp-aaaabwma",
+          "count": 2
+        },
+        {
+          "value": "mp-aaaabuic",
+          "count": 1
+        },
+        {
+          "value": "mp-aaaabuio",
+          "count": 1
+        },
+        {
+          "value": "mp-aaaabuma",
+          "count": 1
+        },
+        {
+          "value": "mp-aaaabunr",
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": null,
+      "datetime": null,
+      "text": {
+        "count": 21,
+        "empty_count": 0,
+        "whitespace_count": 0,
+        "casefold_collision_count": 0,
+        "minimum_length": 11,
+        "maximum_length": 11,
+        "mean_length": 11.0
+      }
+    },
+    {
+      "name": "lattice_a",
+      "inferred_type": "number",
+      "observed_types": {
+        "number": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 20,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 612.6698,
+          "count": 2
+        },
+        {
+          "value": 6.685773,
+          "count": 1
+        },
+        {
+          "value": 5.43924828,
+          "count": 1
+        },
+        {
+          "value": 6.935712291190415,
+          "count": 1
+        },
+        {
+          "value": 4.375637597257861,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 3.874579,
+        "maximum": 612.6698,
+        "mean": 64.36864641346826,
+        "median": 6.314832539389936,
+        "std": 182.30576997897168,
+        "q1": 4.775354,
+        "q3": 7.5094357020063764,
+        "nonfinite_count": 0,
+        "variance": 33235.393767625734,
+        "mode": 612.6698,
+        "skewness": 2.9733747665251657,
+        "kurtosis": 7.557563957880271,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "lattice_b",
+      "inferred_type": "number",
+      "observed_types": {
+        "number": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 20,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 8.078885,
+          "count": 2
+        },
+        {
+          "value": 7.280499,
+          "count": 1
+        },
+        {
+          "value": 9.33458112,
+          "count": 1
+        },
+        {
+          "value": 6.9357131066722415,
+          "count": 1
+        },
+        {
+          "value": 4.375637726038419,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 4.264640566005182,
+        "maximum": 14.153313793621004,
+        "mean": 7.057467799930544,
+        "median": 7.026797227504576,
+        "std": 2.4681730694334525,
+        "q1": 5.109245148242532,
+        "q3": 8.078885,
+        "nonfinite_count": 0,
+        "variance": 6.091878300676551,
+        "mode": 8.078885,
+        "skewness": 1.2394742791039661,
+        "kurtosis": 2.1913711632612016,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "lattice_c",
+      "inferred_type": "number",
+      "observed_types": {
+        "number": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 20,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 9.512086,
+          "count": 2
+        },
+        {
+          "value": 16.693938,
+          "count": 1
+        },
+        {
+          "value": 10.21135645,
+          "count": 1
+        },
+        {
+          "value": 6.935712714805668,
+          "count": 1
+        },
+        {
+          "value": 4.37563775,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 4.274190377482267,
+        "maximum": 16.693938,
+        "mean": 8.333554488318637,
+        "median": 8.108441884440252,
+        "std": 2.9453740803046404,
+        "q1": 6.935712714805668,
+        "q3": 9.430088,
+        "nonfinite_count": 0,
+        "variance": 8.675228472930407,
+        "mode": 9.512086,
+        "skewness": 1.2532345320415044,
+        "kurtosis": 2.6458135248958814,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "lattice_alpha",
+      "inferred_type": "number",
+      "observed_types": {
+        "number": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 12,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 90.0,
+          "count": 10
+        },
+        {
+          "value": 110.75395584237499,
+          "count": 1
+        },
+        {
+          "value": 59.99999974325113,
+          "count": 1
+        },
+        {
+          "value": 59.99998936370948,
+          "count": 1
+        },
+        {
+          "value": 60.00000000000001,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 17.259735663997034,
+        "maximum": 111.29470437153905,
+        "mean": 81.082716610059,
+        "median": 90.0,
+        "std": 24.30475528610901,
+        "q1": 67.4524420420589,
+        "q3": 90.0,
+        "nonfinite_count": 0,
+        "variance": 590.7211295176439,
+        "mode": 90.0,
+        "skewness": -1.28549758576963,
+        "kurtosis": 1.571719674362614,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "lattice_beta",
+      "inferred_type": "number",
+      "observed_types": {
+        "number": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 11,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 90.0,
+          "count": 11
+        },
+        {
+          "value": 110.75395851349768,
+          "count": 1
+        },
+        {
+          "value": 59.999998769672644,
+          "count": 1
+        },
+        {
+          "value": 59.999994535667604,
+          "count": 1
+        },
+        {
+          "value": 60.00000000000001,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 17.259735663997034,
+        "maximum": 111.29469496534121,
+        "mean": 83.84247988412126,
+        "median": 90.0,
+        "std": 22.128174411371955,
+        "q1": 90.0,
+        "q3": 90.0,
+        "nonfinite_count": 0,
+        "variance": 489.65610278009655,
+        "mode": 90.0,
+        "skewness": -1.5300482411994083,
+        "kurtosis": 2.9634422990591056,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "lattice_gamma",
+      "inferred_type": "number",
+      "observed_types": {
+        "number": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 13,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 90.0,
+          "count": 9
+        },
+        {
+          "value": 110.75395176554967,
+          "count": 1
+        },
+        {
+          "value": 60.00000456176412,
+          "count": 1
+        },
+        {
+          "value": 59.99999114129651,
+          "count": 1
+        },
+        {
+          "value": 60.00000000000001,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 17.259735869100872,
+        "maximum": 119.99999737462304,
+        "mean": 85.7444518258273,
+        "median": 90.0,
+        "std": 23.229079744738577,
+        "q1": 90.0,
+        "q3": 94.9272159804554,
+        "nonfinite_count": 0,
+        "variance": 539.590145787424,
+        "mode": 90.0,
+        "skewness": -1.3245724628950282,
+        "kurtosis": 2.605391036974528,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "num_sites",
+      "inferred_type": "integer",
+      "observed_types": {
+        "integer": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 15,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 3,
+          "count": 3
+        },
+        {
+          "value": 24,
+          "count": 3
+        },
+        {
+          "value": 10,
+          "count": 2
+        },
+        {
+          "value": 8,
+          "count": 2
+        },
+        {
+          "value": 56,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 3.0,
+        "maximum": 56.0,
+        "mean": 19.333333333333332,
+        "median": 20.0,
+        "std": 13.49567832060817,
+        "q1": 8.0,
+        "q3": 25.0,
+        "nonfinite_count": 0,
+        "variance": 182.13333333333333,
+        "mode": 3.0,
+        "skewness": 0.8969211997494747,
+        "kurtosis": 1.095009002581547,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "num_distinct_elements",
+      "inferred_type": "integer",
+      "observed_types": {
+        "integer": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 3,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 3,
+          "count": 10
+        },
+        {
+          "value": 2,
+          "count": 9
+        },
+        {
+          "value": 4,
+          "count": 2
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": {
+        "count": 21,
+        "minimum": 2.0,
+        "maximum": 4.0,
+        "mean": 2.6666666666666665,
+        "median": 3.0,
+        "std": 0.6582805886043833,
+        "q1": 2.0,
+        "q3": 3.0,
+        "nonfinite_count": 0,
+        "variance": 0.43333333333333335,
+        "mode": 3.0,
+        "skewness": 0.4735684084945894,
+        "kurtosis": -0.551230146371847,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": null
+    },
+    {
+      "name": "elements",
+      "inferred_type": "string",
+      "observed_types": {
+        "string": 21
+      },
+      "likely_identifier": false,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "non_null_count": 21,
+      "distinct_count": 20,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": "Li, P",
+          "count": 2
+        },
+        {
+          "value": "C, F, O",
+          "count": 1
+        },
+        {
+          "value": "Nd, O, Te",
+          "count": 1
+        },
+        {
+          "value": "Al, B, O",
+          "count": 1
+        },
+        {
+          "value": "Bi, Co, Zr",
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [],
+      "numeric": null,
+      "datetime": null,
+      "text": {
+        "count": 21,
+        "empty_count": 0,
+        "whitespace_count": 0,
+        "casefold_collision_count": 0,
+        "minimum_length": 4,
+        "maximum_length": 12,
+        "mean_length": 7.380952380952381
+      }
+    },
+    {
+      "name": "lattice_volume",
+      "inferred_type": "mixed",
+      "observed_types": {
+        "string": 1,
+        "number": 15
+      },
+      "likely_identifier": false,
+      "missing_count": 5,
+      "missing_fraction": 0.23809523809523808,
+      "non_null_count": 16,
+      "distinct_count": 15,
+      "missing_marker_conversions": {},
+      "top_values": [
+        {
+          "value": 470.8186608267129,
+          "count": 2
+        },
+        {
+          "value": "not measured",
+          "count": 1
+        },
+        {
+          "value": 298.11228727832986,
+          "count": 1
+        },
+        {
+          "value": 297.47879792633404,
+          "count": 1
+        },
+        {
+          "value": 669.0115741752583,
+          "count": 1
+        }
+      ],
+      "rare_count": 0,
+      "rare_examples": [],
+      "unexpected_values": [
+        "not measured"
+      ],
+      "numeric": {
+        "count": 15,
+        "minimum": 128.132989564584,
+        "maximum": 669.0115741752583,
+        "mean": 323.61991957426864,
+        "median": 275.27628245229727,
+        "std": 143.58114328322327,
+        "q1": 219.2405576049497,
+        "q3": 424.5075500074581,
+        "nonfinite_count": 0,
+        "variance": 20615.544706517492,
+        "mode": 470.8186608267129,
+        "skewness": 1.0873576350806506,
+        "kurtosis": 0.8605359630992195,
+        "zero_count": 0,
+        "zero_fraction": 0.0
+      },
+      "datetime": null,
+      "text": {
+        "count": 1,
+        "empty_count": 0,
+        "whitespace_count": 0,
+        "casefold_collision_count": 0,
+        "minimum_length": 12,
+        "maximum_length": 12,
+        "mean_length": 12.0
+      }
+    }
+  ],
+  "missingness": {
+    "total_missing": 5,
+    "total_cells": 231,
+    "row_missing_counts": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "high_missing_rows": 0,
+    "patterns": [
+      {
+        "columns": [
+          "lattice_volume"
+        ],
+        "count": 5
+      }
+    ],
+    "cooccurrences": []
+  },
+  "relationships": [
+    {
+      "left": "lattice_alpha",
+      "right": "lattice_beta",
+      "pearson": 0.9544907524470719,
+      "spearman": 0.8818163074019442,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_beta",
+      "right": "lattice_gamma",
+      "pearson": 0.9136591307033611,
+      "spearman": 0.8312106982740957,
+      "pair_count": 21
+    },
+    {
+      "left": "num_sites",
+      "right": "lattice_volume",
+      "pearson": 0.7318400357389246,
+      "spearman": 0.8733241763454548,
+      "pair_count": 15
+    },
+    {
+      "left": "lattice_alpha",
+      "right": "lattice_gamma",
+      "pearson": 0.8638116238311206,
+      "spearman": 0.7650365493850646,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "lattice_b",
+      "pearson": 0.14603250997669331,
+      "spearman": 0.6452241715399609,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "lattice_volume",
+      "pearson": 0.4215821432998446,
+      "spearman": 0.62432915921288,
+      "pair_count": 15
+    },
+    {
+      "left": "lattice_c",
+      "right": "num_sites",
+      "pearson": 0.616068224697181,
+      "spearman": 0.5246031029422392,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_beta",
+      "right": "num_sites",
+      "pearson": 0.48536625896162305,
+      "spearman": 0.5692667795248101,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_b",
+      "right": "lattice_c",
+      "pearson": 0.5327802501387606,
+      "spearman": 0.5607537361923327,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "num_sites",
+      "pearson": 0.11904473066538931,
+      "spearman": 0.5506703378710461,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_alpha",
+      "right": "num_sites",
+      "pearson": 0.4425043026099822,
+      "spearman": 0.5212243915149793,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "num_distinct_elements",
+      "pearson": -0.34126147636713894,
+      "spearman": -0.5154006288959195,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_gamma",
+      "right": "num_sites",
+      "pearson": 0.4566819118798296,
+      "spearman": 0.46337309766007306,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_beta",
+      "right": "lattice_volume",
+      "pearson": 0.2790834389374896,
+      "spearman": 0.4597297458925363,
+      "pair_count": 15
+    },
+    {
+      "left": "lattice_b",
+      "right": "num_sites",
+      "pearson": 0.16715007663312542,
+      "spearman": 0.4522665260148001,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_b",
+      "right": "lattice_alpha",
+      "pearson": -0.4133068911294828,
+      "spearman": 0.06599341065490624,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_b",
+      "right": "num_distinct_elements",
+      "pearson": -0.40592208299508986,
+      "spearman": -0.3937488044777485,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "lattice_c",
+      "pearson": 0.1386227265172879,
+      "spearman": 0.3905133203378817,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_b",
+      "right": "lattice_beta",
+      "pearson": -0.38436544102578585,
+      "spearman": 0.03087069457283299,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_b",
+      "right": "lattice_gamma",
+      "pearson": -0.37423807498384476,
+      "spearman": -0.051410296687141574,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_alpha",
+      "right": "lattice_volume",
+      "pearson": 0.2811794431195169,
+      "spearman": 0.331502440566887,
+      "pair_count": 15
+    },
+    {
+      "left": "lattice_gamma",
+      "right": "lattice_volume",
+      "pearson": 0.20574360679328788,
+      "spearman": 0.27129470652201143,
+      "pair_count": 15
+    },
+    {
+      "left": "lattice_b",
+      "right": "lattice_volume",
+      "pearson": 0.07874405079277606,
+      "spearman": 0.259391771019678,
+      "pair_count": 15
+    },
+    {
+      "left": "lattice_c",
+      "right": "lattice_alpha",
+      "pearson": 0.020719492906023623,
+      "spearman": 0.2564118976487503,
+      "pair_count": 21
+    },
+    {
+      "left": "num_distinct_elements",
+      "right": "lattice_volume",
+      "pearson": -0.21088708973161316,
+      "spearman": -0.10006023764189632,
+      "pair_count": 15
+    },
+    {
+      "left": "num_sites",
+      "right": "num_distinct_elements",
+      "pearson": 0.17634812093975333,
+      "spearman": 0.11659449427085354,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_c",
+      "right": "lattice_beta",
+      "pearson": -0.025533588477680846,
+      "spearman": 0.17399846031960411,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "lattice_alpha",
+      "pearson": 0.11745640016326586,
+      "spearman": 0.1354239781147555,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_beta",
+      "right": "num_distinct_elements",
+      "pearson": 0.13194505070376375,
+      "spearman": 0.08549819600709617,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "lattice_beta",
+      "pearson": 0.08827160498251446,
+      "spearman": 0.1262892050706804,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_alpha",
+      "right": "num_distinct_elements",
+      "pearson": 0.06055061799631806,
+      "spearman": -0.11156745011769705,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_c",
+      "right": "num_distinct_elements",
+      "pearson": -0.07262283852571241,
+      "spearman": -0.10725515880655308,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_c",
+      "right": "lattice_volume",
+      "pearson": 0.026869057633025894,
+      "spearman": 0.08765652951699464,
+      "pair_count": 15
+    },
+    {
+      "left": "lattice_c",
+      "right": "lattice_gamma",
+      "pearson": -0.06305833158110812,
+      "spearman": 0.08252705520830622,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_a",
+      "right": "lattice_gamma",
+      "pearson": 0.05662964123763294,
+      "spearman": 0.06493932213112621,
+      "pair_count": 21
+    },
+    {
+      "left": "lattice_gamma",
+      "right": "num_distinct_elements",
+      "pearson": 0.06427683200519221,
+      "spearman": -0.06369802768745042,
+      "pair_count": 21
+    }
+  ],
+  "findings": [
+    {
+      "check": "Duplicate rows",
+      "column": null,
+      "severity": "warning",
+      "evidence": "1 repeated row(s) beyond the first occurrence.",
+      "rule": "Full-row equality after missing-value normalization; count additional occurrences only.",
+      "explanation": "Check whether repeated records are intended replicates before removing anything."
+    },
+    {
+      "check": "High missingness",
+      "column": "lattice_volume",
+      "severity": "warning",
+      "evidence": "5 missing of 21 values (23.81%).",
+      "rule": "High missingness when missing fraction >= 5.0%; any missing values are reported.",
+      "explanation": "Review collection coverage before relying on this column; no imputation has been performed."
+    },
+    {
+      "check": "Mixed value types",
+      "column": "lattice_volume",
+      "severity": "warning",
+      "evidence": "Observed number: 15, string: 1. Representative unexpected values: ['not measured'].",
+      "rule": "Incompatible JSON native types, or CSV numeric proportion >= 80% with nonnumeric tokens; boolean/number mixtures are incompatible.",
+      "explanation": "Review unexpected values or inconsistent encoding. Mixed codes can be intentional, not confirmed errors."
+    },
+    {
+      "check": "Potential numerical outliers",
+      "column": "lattice_a",
+      "severity": "info",
+      "evidence": "4/21 finite numeric values outside IQR fences [0.674231, 11.6106]. Examples: 13.4622, 14.1533, 612.67.",
+      "rule": "x < Q1 - 1.5 × IQR or x > Q3 + 1.5 × IQR; linear quartiles, strict inequalities.",
+      "explanation": "Potential outliers are not confirmed errors. Skewed or multimodal distributions may naturally produce them."
+    },
+    {
+      "check": "Potential numerical outliers",
+      "column": "lattice_alpha",
+      "severity": "info",
+      "evidence": "2/21 finite numeric values outside IQR fences [33.6311, 123.821]. Examples: 30.3091, 17.2597.",
+      "rule": "x < Q1 - 1.5 × IQR or x > Q3 + 1.5 × IQR; linear quartiles, strict inequalities.",
+      "explanation": "Potential outliers are not confirmed errors. Skewed or multimodal distributions may naturally produce them."
+    },
+    {
+      "check": "Potential numerical outliers",
+      "column": "lattice_b",
+      "severity": "info",
+      "evidence": "1/21 finite numeric values outside IQR fences [0.654785, 12.5333]. Examples: 14.1533.",
+      "rule": "x < Q1 - 1.5 × IQR or x > Q3 + 1.5 × IQR; linear quartiles, strict inequalities.",
+      "explanation": "Potential outliers are not confirmed errors. Skewed or multimodal distributions may naturally produce them."
+    },
+    {
+      "check": "Potential numerical outliers",
+      "column": "lattice_c",
+      "severity": "info",
+      "evidence": "2/21 finite numeric values outside IQR fences [3.19415, 13.1717]. Examples: 16.6939, 14.1533.",
+      "rule": "x < Q1 - 1.5 × IQR or x > Q3 + 1.5 × IQR; linear quartiles, strict inequalities.",
+      "explanation": "Potential outliers are not confirmed errors. Skewed or multimodal distributions may naturally produce them."
+    },
+    {
+      "check": "Potential numerical outliers",
+      "column": "lattice_gamma",
+      "severity": "info",
+      "evidence": "9/21 finite numeric values outside IQR fences [82.6092, 102.318]. Examples: 110.754, 60, 60, 60, 109.471.",
+      "rule": "x < Q1 - 1.5 × IQR or x > Q3 + 1.5 × IQR; linear quartiles, strict inequalities.",
+      "explanation": "Potential outliers are not confirmed errors. Skewed or multimodal distributions may naturally produce them."
+    },
+    {
+      "check": "Potential numerical outliers",
+      "column": "num_sites",
+      "severity": "info",
+      "evidence": "1/21 finite numeric values outside IQR fences [-17.5, 50.5]. Examples: 56.",
+      "rule": "x < Q1 - 1.5 × IQR or x > Q3 + 1.5 × IQR; linear quartiles, strict inequalities.",
+      "explanation": "Potential outliers are not confirmed errors. Skewed or multimodal distributions may naturally produce them."
+    },
+    {
+      "check": "Strong numerical correlation",
+      "column": "lattice_alpha ↔ lattice_beta",
+      "severity": "info",
+      "evidence": "Pearson=0.954, Spearman=0.882, based on 21 complete pair(s).",
+      "rule": "Absolute Pearson or Spearman correlation >= 0.90.",
+      "explanation": "The variables may be redundant or related; correlation does not establish causation."
+    },
+    {
+      "check": "Strong numerical correlation",
+      "column": "lattice_beta ↔ lattice_gamma",
+      "severity": "info",
+      "evidence": "Pearson=0.914, Spearman=0.831, based on 21 complete pair(s).",
+      "rule": "Absolute Pearson or Spearman correlation >= 0.90.",
+      "explanation": "The variables may be redundant or related; correlation does not establish causation."
+    }
+  ],
+  "charts": {
+    "assets": [
+      {
+        "key": "missingness",
+        "relative_path": "structures_with_issues_assets/missingness.png",
+        "caption": "Columns ranked by the number of missing records."
+      },
+      {
+        "key": "row_missingness",
+        "relative_path": "structures_with_issues_assets/row_missingness.png",
+        "caption": "Distribution of missing-cell burden across records."
+      },
+      {
+        "key": "numeric_distributions",
+        "relative_path": "structures_with_issues_assets/numeric_distributions.png",
+        "caption": "Histograms for selected numerical measurements; interpret scales separately."
+      },
+      {
+        "key": "numeric_boxplots",
+        "relative_path": "structures_with_issues_assets/numeric_boxplots.png",
+        "caption": "Selected numerical ranges; points beyond whiskers are distributional candidates, not errors."
+      },
+      {
+        "key": "correlations",
+        "relative_path": "structures_with_issues_assets/correlation_heatmap.png",
+        "caption": "Pearson correlations among selected numerical variables; association is not causation."
+      }
+    ],
+    "status": [
+      {
+        "key": "missingness",
+        "title": "Missing values by column",
+        "status": "generated",
+        "detail": "missingness.png"
+      },
+      {
+        "key": "row_missingness",
+        "title": "Missing cells per record",
+        "status": "generated",
+        "detail": "row_missingness.png"
+      },
+      {
+        "key": "numeric_distributions",
+        "title": "Numerical histograms",
+        "status": "generated",
+        "detail": "numeric_distributions.png"
+      },
+      {
+        "key": "numeric_boxplots",
+        "title": "Numerical boxplots",
+        "status": "generated",
+        "detail": "numeric_boxplots.png"
+      },
+      {
+        "key": "correlations",
+        "title": "Correlation heatmap",
+        "status": "generated",
+        "detail": "correlation_heatmap.png"
+      },
+      {
+        "key": "categories",
+        "title": "Category frequencies",
+        "status": "not applicable",
+        "detail": "no non-identifier categorical column with 2-10 distinct values"
+      }
+    ]
+  },
+  "config": {
+    "missing_threshold": 0.05,
+    "top_values": 5,
+    "missing_values": [
+      "",
+      "NA",
+      "N/A",
+      "n/a",
+      "#N/A",
+      "NULL",
+      "null",
+      "NaN",
+      "nan"
+    ],
+    "iqr_multiplier": 1.5,
+    "mixed_numeric_threshold": 0.8,
+    "identifier_unique_ratio": 0.95,
+    "identifier_min_count": 10,
+    "outlier_min_count": 4,
+    "near_constant_threshold": 0.95,
+    "excessive_zero_threshold": 0.9,
+    "rare_category_threshold": 0.02,
+    "row_missing_threshold": 0.5,
+    "correlation_threshold": 0.9,
+    "chart_max_columns": 6,
+    "sample_rows": 100000
+  }
+}

@@ -1,6 +1,5 @@
 """CLI safety and configuration smoke tests."""
 
-from pathlib import Path
 
 from smart_data_inspector.cli.main import main
 

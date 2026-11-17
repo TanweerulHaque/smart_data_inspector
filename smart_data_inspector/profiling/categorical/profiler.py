@@ -6,7 +6,7 @@ import pandas as pd
 
 from ...config import InspectionConfig
 from ...models import CategoricalSummary
-from ...utils.serialization import value_key
+from ...utils.serialization import value_keys
 
 
 def is_likely_identifier(series: pd.Series, config: InspectionConfig, *, text_values: bool = True) -> bool:
@@ -14,7 +14,7 @@ def is_likely_identifier(series: pd.Series, config: InspectionConfig, *, text_va
     present = series.dropna()
     if present.empty:
         return False
-    keys = present.map(value_key)
+    keys = value_keys(present)
     unique = int(keys.nunique())
     ratio = unique / len(present)
     id_name = bool(re.search(r"(^|[_\W])(id|uuid|guid|identifier|key)($|[_\W])", str(series.name), re.IGNORECASE))
@@ -28,7 +28,7 @@ def profile_categorical(series: pd.Series, config: InspectionConfig | None = Non
     """Non-null counts; frequency ties retain first appearance; bool differs from 1."""
     config = config or InspectionConfig()
     present = series.dropna()
-    keys = present.map(value_key)
+    keys = value_keys(present)
     counts = keys.value_counts(sort=False).sort_values(ascending=False, kind="stable")
     representatives = dict(zip(keys, present))
     top = [(representatives[key], int(count)) for key, count in counts.iloc[:config.top_values].items()]

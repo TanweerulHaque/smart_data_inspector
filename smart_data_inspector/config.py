@@ -3,7 +3,9 @@
 from dataclasses import dataclass
 from math import isfinite
 
-DEFAULT_MISSING_VALUES = ("", "na", "n/a", "null", "none", "nan")
+# Exact, case-sensitive tokens (compared after trimming whitespace). Case matters:
+# "Na" (sodium) or "none" (a valid answer) must not silently become missing.
+DEFAULT_MISSING_VALUES = ("", "NA", "N/A", "n/a", "#N/A", "NULL", "null", "NaN", "nan")
 
 
 @dataclass(frozen=True)

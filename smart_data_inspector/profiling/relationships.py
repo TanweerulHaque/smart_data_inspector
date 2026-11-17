@@ -14,7 +14,7 @@ def profile_relationships(frame: pd.DataFrame, numeric_columns: list[str],
     usable = numeric_columns[:]
     if len(usable) < 2:
         return RelationshipProfile([], usable)
-    numeric = frame[usable].apply(pd.to_numeric, errors="coerce").replace([np.inf, -np.inf], np.nan)
+    numeric = frame[usable].apply(pd.to_numeric, errors="coerce").astype("float64").replace([np.inf, -np.inf], np.nan)
     if len(numeric) > config.sample_rows:
         numeric = numeric.iloc[:config.sample_rows]
     pairs: list[Relationship] = []

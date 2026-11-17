@@ -14,7 +14,7 @@ def make_inspection() -> Inspection:
         ColumnSummary("reading", "number", 0, 0, 4, 4, {"integer": 4}, [(1, 1)], numeric),
         ColumnSummary("group", "string", 1, 0.25, 3, 2, {"string": 3}, [("control", 2), ("test", 1)], None),
     ]
-    dataset = Dataset(Path("/input/study.csv"), "CSV", [item.name for item in columns], [["A", 1, "control"], ["B", 2, "control"], ["C", 7, "test"], ["D", 100, None]])
+    dataset = Dataset.from_rows(Path("/input/study.csv"), "CSV", [item.name for item in columns], [["A", 1, "control"], ["B", 2, "control"], ["C", 7, "test"], ["D", 100, None]])
     return Inspection(dataset, InspectionConfig(), columns, 0, [
         Finding("High missingness", "group", "warning", "1 missing of 4 values (25.00%).", "fraction >= 5%", "Review collection coverage."),
         Finding("Potential numerical outliers", "reading", "info", "1/4 values outside fences.", "IQR fence", "Potential, not confirmed errors."),
@@ -53,3 +53,24 @@ def test_rendering_is_pure_and_escapes_untrusted_markdown():
     report = render_report(inspection)
     assert "bad\\|\\*field\\*\\n## injected" in report
     assert inspection.columns[2].name == before
+
+
+def test_detail_sections_cover_mode_text_patterns_and_charts():
+    from smart_data_inspector.models import ChartStatus, MissingnessProfile, MissingPattern, TextSummary
+    inspection = make_inspection()
+    inspection.columns[2].text = TextSummary(3, 0, 1, 0, 4, 7, 5.5)
+    inspection.missingness = MissingnessProfile(1, 12, [0, 0, 0, 1], 0, [MissingPattern(("group",), 1)], [])
+    inspection.chart_status = [ChartStatus("numeric_boxplots", "Numerical boxplots", "failed", "ValueError: x")]
+    report = render_report(inspection)
+    assert "| Median | Mode | Std |" in report and "| Mode | Zero share |" in report
+    assert "Text value summaries" in report and "Most common missing-value patterns" in report
+    assert "Chart availability" in report and "ValueError: x" in report
+
+
+def test_json_report_is_valid_and_has_no_raw_rows():
+    import json
+
+    from smart_data_inspector.reporting.json.renderer import render_json_report
+    data = json.loads(render_json_report(make_inspection()))
+    assert data["overview"]["rows"] == 4 and len(data["columns"]) == 3
+    assert "rows" not in data["source"] and data["findings"][0]["check"] == "High missingness"

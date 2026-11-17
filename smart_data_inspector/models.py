@@ -17,14 +17,20 @@ class InspectionError(ValueError):
 
 @dataclass
 class Dataset:
+    """A loaded table. ``frame`` may be released (set to None) once profiling is done."""
     source: Path
     format: str
-    columns: list[str]
-    rows: list[list[Scalar]]
+    frame: pd.DataFrame | None
+    columns: list[str] = field(init=False)
+    row_count: int = field(init=False)
 
-    def to_frame(self) -> pd.DataFrame:
-        """Retain native scalars and CSV tokens until explicit inference."""
-        return pd.DataFrame(self.rows, columns=self.columns, dtype=object)
+    def __post_init__(self) -> None:
+        self.columns = [str(name) for name in self.frame.columns]
+        self.row_count = len(self.frame)
+
+    @classmethod
+    def from_rows(cls, source: Path, format: str, columns: list[str], rows: list[list[Scalar]]) -> "Dataset":
+        return cls(source, format, pd.DataFrame(rows, columns=columns, dtype=object))
 
 
 @dataclass(frozen=True)
@@ -87,6 +93,27 @@ class ColumnSummary:
     text: "TextSummary | None" = None
     rare_count: int = 0
     rare_examples: list[Scalar] = field(default_factory=list)
+    datetime: "DatetimeSummary | None" = None
+    marker_conversions: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class DatetimeSummary:
+    """Parsed date/time evidence; naive values are compared as UTC."""
+    count: int
+    invalid_count: int
+    invalid_examples: list[str]
+    minimum: str | None
+    maximum: str | None
+    span_days: float | None
+    future_count: int
+    future_examples: list[str]
+    reference_time: str
+    formats: dict[str, int]
+    timezone_aware_count: int
+    naive_count: int
+    non_iso_count: int = 0
+    non_iso_examples: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -140,6 +167,15 @@ class ChartAsset:
 
 
 @dataclass(frozen=True)
+class ChartStatus:
+    """Why each optional chart is, or is not, part of a report."""
+    key: str
+    title: str
+    status: str  # generated | not applicable | failed | disabled
+    detail: str = ""
+
+
+@dataclass(frozen=True)
 class Finding:
     check_name: str
     column: str | None
@@ -165,3 +201,5 @@ class Inspection:
     missingness: MissingnessProfile | None = None
     relationships: RelationshipProfile | None = None
     assets: list[ChartAsset] = field(default_factory=list)
+    chart_status: list[ChartStatus] = field(default_factory=list)
+    generated_at: str = ""

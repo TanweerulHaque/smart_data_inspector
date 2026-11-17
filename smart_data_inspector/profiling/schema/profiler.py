@@ -1,6 +1,7 @@
 """Conservative scalar type inference without treating categorical codes as errors."""
 
 import re
+from datetime import date, datetime
 from decimal import Decimal
 from typing import cast
 
@@ -21,6 +22,9 @@ def classify(value: object, csv_input: bool = False) -> str:
     """JSON strings stay strings; only CSV tokens undergo lexical inference."""
     if isinstance(value, (bool, np.bool_)):
         return "boolean"
+    if isinstance(value, (datetime, date, pd.Timestamp, np.datetime64)):
+        # Native values from typed formats such as Parquet.
+        return "datetime"
     if isinstance(value, (int, np.integer)):
         return "integer"
     if isinstance(value, (float, Decimal, np.floating)):

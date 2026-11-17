@@ -34,7 +34,7 @@ def test_cancellation_after_sum_overflow_is_not_row_order_dependent(values):
 def test_unique_measurements_are_not_identifier_columns_and_outliers_are_checked(format):
     values = list(range(1, 10)) + [100]
     rows: list[list[Scalar]] = [[str(value) if format == "CSV" else value] for value in values]
-    result = inspect_dataset(Dataset(Path("input." + format.lower()), format, ["measurement"], rows))
+    result = inspect_dataset(Dataset.from_rows(Path("input." + format.lower()), format, ["measurement"], rows))
     assert not result.columns[0].likely_identifier
     assert any(f.check_name == "Potential numerical outliers" for f in result.findings)
 
@@ -49,7 +49,7 @@ def test_unique_mostly_numeric_csv_is_still_checked_for_inconsistent_types():
 @pytest.mark.parametrize("value", [10**309, str(10**309), "1e309", "-1e309", -(10**309)])
 def test_magnitudes_outside_float64_are_excluded_with_explicit_warning(value):
     format = "CSV" if isinstance(value, str) else "JSON"
-    result = inspect_dataset(Dataset(Path("input." + format.lower()), format, ["v"], [[value], [1]]))
+    result = inspect_dataset(Dataset.from_rows(Path("input." + format.lower()), format, ["v"], [[value], [1]]))
     numeric = result.columns[0].numeric
     assert numeric is not None
     assert (numeric.count, numeric.nonfinite_count, numeric.mean) == (1, 1, 1)

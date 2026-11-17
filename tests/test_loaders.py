@@ -7,6 +7,8 @@ from pathlib import Path
 
 from smart_data_inspector.loaders import InspectionError, load_dataset
 
+from conftest import table_rows
+
 
 class LoadDatasetTests(unittest.TestCase):
     def setUp(self):
@@ -29,7 +31,7 @@ class LoadDatasetTests(unittest.TestCase):
         self.assertEqual(dataset.source, path)
         self.assertEqual(dataset.format, "CSV")
         self.assertEqual(dataset.columns, ["id", "description", "flag"])
-        self.assertEqual(dataset.rows, [
+        self.assertEqual(table_rows(dataset.frame), [
             ["001", "café, sample", "TRUE"],
             ["1", "two\nlines", "false"],
             ["", "", ""],
@@ -38,7 +40,7 @@ class LoadDatasetTests(unittest.TestCase):
     def test_csv_ignores_blank_physical_lines_before_the_header(self):
         dataset = load_dataset(self.write("leading-blanks.csv", "\n\nid,label\n\n1,alpha\n\n"))
         self.assertEqual(dataset.columns, ["id", "label"])
-        self.assertEqual(dataset.rows, [["1", "alpha"]])
+        self.assertEqual(table_rows(dataset.frame), [["1", "alpha"]])
 
     def test_json_bom_preserves_scalars_and_first_seen_union_order(self):
         dataset = load_dataset(self.write(
@@ -49,19 +51,19 @@ class LoadDatasetTests(unittest.TestCase):
         ))
         self.assertEqual(dataset.format, "JSON")
         self.assertEqual(dataset.columns, ["label", "count", "flag", "fraction"])
-        self.assertEqual(dataset.rows, [
+        self.assertEqual(table_rows(dataset.frame), [
             ["001", 1, True, None],
             ["café", None, False, Decimal("1.25")],
             [None, None, None, None],
         ])
-        self.assertIs(type(dataset.rows[0][1]), int)
-        self.assertIs(type(dataset.rows[0][2]), bool)
-        self.assertIs(type(dataset.rows[1][3]), Decimal)
+        self.assertIs(type(table_rows(dataset.frame)[0][1]), int)
+        self.assertIs(type(table_rows(dataset.frame)[0][2]), bool)
+        self.assertIs(type(table_rows(dataset.frame)[1][3]), Decimal)
 
     def test_all_null_rows_are_not_an_empty_dataset(self):
         dataset = load_dataset(self.write("nulls.json", '[{"value":null},{}]'))
         self.assertEqual(dataset.columns, ["value"])
-        self.assertEqual(dataset.rows, [[None], [None]])
+        self.assertEqual(table_rows(dataset.frame), [[None], [None]])
 
     def test_rejects_invalid_csv_without_silently_dropping_records(self):
         cases = {

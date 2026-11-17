@@ -85,13 +85,96 @@ def _recommendations(inspection: Inspection) -> list[str]:
         ideas.append("Inspect raw categorical labels before grouping them, and preserve an auditable normalization map if one is justified.")
     if checks & {"Potential duplicate columns", "Strong numerical correlation", "Duplicate rows"}:
         ideas.append("Check repeated records and strongly aligned variables against the study design before removing rows or selecting predictors.")
+    if checks & {"Future dates", "Invalid calendar dates", "Mixed date formats"}:
+        ideas.append("Standardise date/time columns to one ISO 8601 layout and timezone, and confirm future or impossible dates against the source system.")
+    if checks & {"Ambiguous missing-value marker", "Missing-value markers converted"}:
+        ideas.append("Confirm that converted text markers really mean 'unknown'; re-run with --missing-value or --no-missing-markers if any are legitimate codes.")
     return ideas or ["Review provenance, units, sampling frame and domain constraints; these cannot be established from a file profile alone."]
+
+
+def _missingness_detail(inspection: Inspection) -> list[str]:
+    """Row burden, repeated missing-column patterns, co-occurring pairs and marker conversions."""
+    lines: list[str] = []
+    profile = inspection.missingness
+    rows = inspection.dataset.row_count
+    if profile and profile.total_missing:
+        burden = profile.row_missing_counts
+        affected = sum(count > 0 for count in burden)
+        lines += [f"Row burden: {affected:,} of {rows:,} record(s) have at least one missing cell; the worst record misses "
+                  f"{max(burden):,} of {len(inspection.columns):,} fields.", ""]
+        if profile.patterns:
+            lines += ["#### Most common missing-value patterns", "",
+                      "Each pattern is the exact set of fields missing together in a record.", ""]
+            lines += _table(["Missing together", "Records", "Share of records"], [
+                [", ".join(pattern.columns), f"{pattern.count:,}", _percent(pattern.count / rows if rows else None)]
+                for pattern in profile.patterns])
+        if profile.cooccurrences:
+            left, right, count = profile.cooccurrences[0]
+            lines += [f"The most common pair of absent fields is **{_escape(left)}** and **{_escape(right)}** "
+                      f"({count:,} records); review their shared collection path.", "",
+                      "#### Fields missing in the same records", ""]
+            lines += _table(["Field A", "Field B", "Records missing both"],
+                            [[left, right, f"{count:,}"] for left, right, count in profile.cooccurrences])
+    converted = [column for column in inspection.columns if column.marker_conversions]
+    if converted:
+        lines += ["#### Text converted to missing", "",
+                  "These raw values were treated as missing before profiling (\"(blank)\" = empty or whitespace-only text).", ""]
+        lines += _table(["Column", "Converted values (count)", "Total converted"], [
+            [column.name, "; ".join(f"{repr(token) if token else '(blank)'} ×{count:,}"
+                                    for token, count in sorted(column.marker_conversions.items())),
+             f"{sum(column.marker_conversions.values()):,}"] for column in converted])
+    return lines
+
+
+def _date_section(columns: list[ColumnSummary]) -> list[str]:
+    dated = [column for column in columns if column.datetime is not None]
+    if not dated:
+        return []
+    lines = ["## Date and time summaries", "", "### What period does the data cover?", "",
+             f"Compared with the inspection time {_escape(dated[0].datetime.reference_time)} (UTC). Only ISO-like text and native "
+             "date/time values are parsed; other date-looking text is counted as a non-ISO format, not guessed.", ""]
+    lines += _table(["Column", "Parsed", "Earliest", "Latest", "Span (days)", "Future", "Invalid", "Formats (count)", "Timezone-aware / naive"], [
+        [column.name, f"{column.datetime.count:,}", column.datetime.minimum or NA, column.datetime.maximum or NA,
+         _number(column.datetime.span_days), f"{column.datetime.future_count:,}", f"{column.datetime.invalid_count:,}",
+         "; ".join(f"{label}: {count:,}" for label, count in sorted(column.datetime.formats.items())),
+         f"{column.datetime.timezone_aware_count:,} / {column.datetime.naive_count:,}"] for column in dated])
+    return lines
+
+
+def _text_section(columns: list[ColumnSummary]) -> list[str]:
+    texts = [column for column in columns if column.text is not None
+             and column.inferred_type in {"string", "mixed", "datetime"}]
+    if not texts:
+        return []
+    lines = ["#### Text value summaries", "",
+             "Lengths are in characters for non-missing string values; whitespace counts values with leading/trailing spaces.", ""]
+    lines += _table(["Column", "Strings", "Empty", "Leading/trailing whitespace", "Case-only variants", "Min length", "Mean length", "Max length"], [
+        [column.name, f"{column.text.count:,}", f"{column.text.empty_count:,}", f"{column.text.whitespace_count:,}",
+         f"{column.text.casefold_collision_count:,}", column.text.minimum_length if column.text.minimum_length is not None else NA,
+         _number(column.text.mean_length), column.text.maximum_length if column.text.maximum_length is not None else NA]
+        for column in texts])
+    return lines
+
+
+def _chart_section(inspection: Inspection) -> list[str]:
+    """List every chart outcome so skipped or failed charts are never silent."""
+    if not inspection.chart_status:
+        return []
+    unavailable = [item for item in inspection.chart_status if item.status != "generated"]
+    lines = ["### Chart availability", ""]
+    if not unavailable:
+        lines += ["All applicable charts were generated.", ""]
+    lines += _table(["Chart", "Status", "Detail"], [[item.title, item.status, item.detail] for item in inspection.chart_status])
+    failed = [item for item in unavailable if item.status == "failed"]
+    if failed:
+        lines += [f"{len(failed):,} chart(s) failed to render; the report is otherwise complete.", ""]
+    return lines
 
 
 def render_report(inspection: Inspection) -> str:
     """Build a layered report without file I/O, data mutation, or recalculation."""
     dataset, config, columns = inspection.dataset, inspection.config, inspection.columns
-    rows = len(dataset.rows)
+    rows = dataset.row_count
     missing = sum(column.missing_count for column in columns)
     missing_columns = sum(column.missing_count > 0 for column in columns)
     completeness = 1 - missing / (rows * len(columns)) if rows and columns else None
@@ -152,9 +235,7 @@ def render_report(inspection: Inspection) -> str:
     ])
     if inspection.missingness and inspection.missingness.high_missing_rows:
         lines += [f"{inspection.missingness.high_missing_rows:,} record(s) have at least {_percent(config.row_missing_threshold)} of fields missing.", ""]
-    if inspection.missingness and inspection.missingness.cooccurrences:
-        left, right, count = inspection.missingness.cooccurrences[0]
-        lines += [f"The most common pair of absent fields is **{_escape(left)}** and **{_escape(right)}** ({count:,} records); review their shared collection path.", ""]
+    lines += _missingness_detail(inspection)
     _asset(lines, inspection.assets, "missingness")
     _asset(lines, inspection.assets, "row_missingness")
     lines += ["## Duplicate rows", "", "The count is additional full-row occurrences beyond the first occurrence in each group after missing-value normalization; for example, three identical rows contribute two additional rows.", ""]
@@ -174,9 +255,10 @@ def render_report(inspection: Inspection) -> str:
         _asset(lines, inspection.assets, "numeric_boxplots")
     else:
         lines += ["No non-identifier numerical variables had finite values suitable for this narrative. No numeric values to summarize.", ""]
-    lines += _table(["Column", "Finite count", "Nonfinite excluded", "Minimum", "Maximum", "Mean", "Median", "Sample std (ddof=1)", "Q1 (25%)", "Q3 (75%)", "Scope / notes"], [
-        [column.name, f"{column.numeric.count:,}", f"{column.numeric.nonfinite_count:,}", _number(column.numeric.minimum), _number(column.numeric.maximum), _number(column.numeric.mean), _number(column.numeric.median), _number(column.numeric.std), _number(column.numeric.q1), _number(column.numeric.q3), "Likely identifier" if column.likely_identifier else "Finite numeric values"] for column in columns if column.numeric is not None
+    lines += _table(["Column", "Finite count", "Nonfinite excluded", "Minimum", "Maximum", "Mean", "Median", "Sample std (ddof=1)", "Q1 (25%)", "Q3 (75%)", "Mode", "Zero share", "Scope / notes"], [
+        [column.name, f"{column.numeric.count:,}", f"{column.numeric.nonfinite_count:,}", _number(column.numeric.minimum), _number(column.numeric.maximum), _number(column.numeric.mean), _number(column.numeric.median), _number(column.numeric.std), _number(column.numeric.q1), _number(column.numeric.q3), _number(column.numeric.mode), _percent(column.numeric.zero_fraction), "Likely identifier" if column.likely_identifier else "Finite numeric values"] for column in columns if column.numeric is not None
     ])
+    lines += _date_section(columns)
     categorical = [column for column in columns if column.inferred_type in {"string", "boolean", "mixed"} and not column.likely_identifier]
     lines += ["## Categorical summaries", "", "### Chapter 4: Are the categorical variables consistent?", "", f"Up to {config.top_values} most frequent non-missing values are shown; likely identifiers suppress modes and top values.", ""]
     if categorical:
@@ -195,6 +277,7 @@ def render_report(inspection: Inspection) -> str:
          "Likely identifier; mode and top values suppressed" if column.likely_identifier else ""]
         for column in columns if column.inferred_type in {"string", "boolean", "mixed"} or column.likely_identifier
     ])
+    lines += _text_section(columns)
     pairs = inspection.relationships.relationships if inspection.relationships else []
     lines += ["### Chapter 5: How do variables relate to one another?", ""]
     if pairs:
@@ -214,9 +297,10 @@ def render_report(inspection: Inspection) -> str:
     lines += _table(["Check name", "Column", "Severity", "Evidence", "Rule", "Explanation"], [[item.check_name, item.column or "(whole dataset)", item.severity, item.evidence, item.rule, item.explanation] for item in inspection.findings])
     lines += ["### Chapter 7: Recommended next investigations", "", *(f"- {idea}" for idea in _recommendations(inspection)), "",
               "## Rules and limitations", "", "### Chapter 8: Methodology and limitations", "",
-              "Missing strings are normalized using configured trimmed, case-insensitive markers; JSON null and absent keys are missing. Numerical summaries use finite float64 values, linear quartiles and sample standard deviation. IQR alerts use strict fences; Pearson and Spearman associations use complete pairs. The tool processes the full file in memory.", "",
+              f"Missing strings are normalized only when the trimmed text exactly (case-sensitively) equals a configured marker ({_escape(', '.join(repr(item) for item in config.missing_values if item)) or 'blank text only'}); blanks, JSON null and absent keys are always missing, and every conversion is counted per column. ISO-like date text and native date/time values are summarised; naive times are compared as UTC. Numerical summaries use finite float64 values, linear quartiles and sample standard deviation. IQR alerts use strict fences; Pearson and Spearman associations use complete pairs. The tool processes the full file in memory.", "",
               f"Configured rules: missing fraction >= {_percent(config.missing_threshold)}; CSV mixed inference requires at least {_percent(config.mixed_numeric_threshold)} numeric values; potential outliers use Q1 - {_number(config.iqr_multiplier)} × IQR and Q3 + {_number(config.iqr_multiplier)} × IQR and are skipped for zero IQR or fewer than {config.outlier_min_count} finite values. Pandas/NumPy floating-point calculations can round large integers. JSON preserves native types: quoted numbers and booleans remain strings. Nonfinite values are flagged and excluded from numeric statistics and outlier fences.", "",
               "Statistical observations are not errors by themselves. This tool does not validate units, study design, causality, scientific plausibility, no domain schema, nested JSON or JSON Lines. Input is processed in memory, not streamed, and the source file is never modified.", "",
+              *_chart_section(inspection),
               "### Technical appendix", "", "#### Complete schema inventory", ""]
     lines += _table(["Variable", "Type", "Non-null", "Distinct", "Observed values", "Identifier-like"], [
         [column.name, column.inferred_type, f"{column.non_null_count:,}", f"{column.distinct_count:,}",
@@ -226,8 +310,8 @@ def render_report(inspection: Inspection) -> str:
     lines += ["#### Numerical statistics appendix", ""]
     all_numeric = [column for column in columns if column.numeric is not None]
     if all_numeric:
-        lines += _table(["Variable", "Finite", "Min", "Max", "Mean", "Median", "Std", "Variance", "Q1", "Q3", "Skew", "Kurtosis", "Zeros"], [
-            [column.name, f"{column.numeric.count:,}", _number(column.numeric.minimum), _number(column.numeric.maximum), _number(column.numeric.mean), _number(column.numeric.median), _number(column.numeric.std), _number(column.numeric.variance), _number(column.numeric.q1), _number(column.numeric.q3), _number(column.numeric.skewness), _number(column.numeric.kurtosis), f"{column.numeric.zero_count:,} ({_percent(column.numeric.zero_fraction)})"]
+        lines += _table(["Variable", "Finite", "Min", "Max", "Mean", "Median", "Mode", "Std", "Variance", "Q1", "Q3", "Skew", "Kurtosis", "Zeros"], [
+            [column.name, f"{column.numeric.count:,}", _number(column.numeric.minimum), _number(column.numeric.maximum), _number(column.numeric.mean), _number(column.numeric.median), _number(column.numeric.mode), _number(column.numeric.std), _number(column.numeric.variance), _number(column.numeric.q1), _number(column.numeric.q3), _number(column.numeric.skewness), _number(column.numeric.kurtosis), f"{column.numeric.zero_count:,} ({_percent(column.numeric.zero_fraction)})"]
             for column in all_numeric
         ])
     else:

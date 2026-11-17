@@ -14,21 +14,18 @@ def profile_missingness_patterns(frame: pd.DataFrame,
     config = config or InspectionConfig()
     if frame.empty:
         return MissingnessProfile(0, 0, [], 0, [], [])
-    mask = frame.isna()
+    mask = frame.isna().to_numpy()
+    names = [str(column) for column in frame.columns]
     row_counts = mask.sum(axis=1).astype(int).tolist()
-    patterns = Counter(tuple(str(column) for column in frame.columns[mask.iloc[index].to_numpy()])
-                       for index in range(len(frame)))
-    relevant = [MissingPattern(columns, count) for columns, count in patterns.most_common(config.top_values)
-                if columns]
-    pairs: Counter[tuple[str, str]] = Counter()
-    for _, row in mask.iterrows():
-        names = [str(column) for column, missing in row.items() if missing]
-        for index, left in enumerate(names):
-            for right in names[index + 1:]:
-                pairs[(left, right)] += 1
-    cooccurrences = [(left, right, count) for (left, right), count in pairs.most_common(config.top_values)]
+    patterns = Counter(map(tuple, mask[mask.any(axis=1)]))
+    relevant = [MissingPattern(tuple(name for name, missing in zip(names, pattern) if missing), count)
+                for pattern, count in patterns.most_common(config.top_values)]
+    together = mask.T.astype(int) @ mask.astype(int)  # records missing both columns
+    pairs = [(names[left], names[right], int(together[left, right]))
+             for left in range(len(names)) for right in range(left + 1, len(names)) if together[left, right]]
+    cooccurrences = sorted(pairs, key=lambda pair: -pair[2])[:config.top_values]
     return MissingnessProfile(
-        total_missing=int(mask.to_numpy().sum()), total_cells=frame.shape[0] * frame.shape[1],
+        total_missing=int(mask.sum()), total_cells=frame.shape[0] * frame.shape[1],
         row_missing_counts=row_counts,
         high_missing_rows=sum(count / frame.shape[1] >= config.row_missing_threshold for count in row_counts),
         patterns=relevant, cooccurrences=cooccurrences,
