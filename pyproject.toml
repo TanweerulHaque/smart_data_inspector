@@ -1,13 +1,16 @@
 [project]
 name = "smart-data-inspector"
 version = "0.1.0"
-description = ""
+description = "A small CLI for inspecting CSV and flat JSON datasets with Markdown reports."
+readme = "README.md"
 authors = [
     {name = "Tanweerul Haque",email = "tan.haque@gmail.com"}
 ]
 requires-python = ">=3.11"
-dependencies = [
-]
+dependencies = []
+
+[project.scripts]
+smart-data-inspector = "smart_data_inspector.cli:main"
 
 
 [build-system]

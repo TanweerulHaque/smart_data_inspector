@@ -1,0 +1,209 @@
+[
+  {
+    "material_id": "mp-aaaabuic",
+    "charge": 0.0,
+    "lattice_a": 6.685773,
+    "lattice_b": 7.280499,
+    "lattice_c": 16.693938,
+    "site_count": 56,
+    "elements": "C, F, O"
+  },
+  {
+    "material_id": "mp-aaaabuio",
+    "charge": 0.0,
+    "lattice_a": 5.43924828,
+    "lattice_b": 9.33458112,
+    "lattice_c": 10.21135645,
+    "volume": null,
+    "site_count": 36,
+    "elements": "Nd, O, Te"
+  },
+  {
+    "material_id": "mp-aaaabuma",
+    "charge": 0.0,
+    "lattice_a": 6.935712291190415,
+    "lattice_b": 6.9357131066722415,
+    "lattice_c": 6.935712714805668,
+    "site_count": 25,
+    "elements": "Al, B, O"
+  },
+  {
+    "material_id": "mp-aaaabunr",
+    "charge": 0.0,
+    "lattice_a": 4.375637597257861,
+    "lattice_b": 4.375637726038419,
+    "lattice_c": 4.37563775,
+    "volume": null,
+    "site_count": 3,
+    "elements": "Bi, Co, Zr"
+  },
+  {
+    "material_id": "mp-aaaabunu",
+    "charge": 0.0,
+    "lattice_a": 4.35471993797867,
+    "lattice_b": 4.354719245579146,
+    "lattice_c": 4.35471861,
+    "site_count": 3,
+    "elements": "Ru, Sb, Ta"
+  },
+  {
+    "material_id": "mp-aaaabunv",
+    "charge": 0.0,
+    "lattice_a": 4.274190377482267,
+    "lattice_b": 4.274190377482267,
+    "lattice_c": 4.274190377482267,
+    "volume": "not measured",
+    "site_count": 3,
+    "elements": "Ru, Sb, V"
+  },
+  {
+    "material_id": "mp-aaaabupc",
+    "charge": 0.0,
+    "lattice_a": 7.289008881788073,
+    "lattice_b": 7.289005515830332,
+    "lattice_c": 7.2890047999277074,
+    "volume": 298.11228727832986,
+    "site_count": 32,
+    "elements": "Li, Nb, O"
+  },
+  {
+    "material_id": "mp-aaaabuph",
+    "charge": 0.0,
+    "lattice_a": 6.314832539389936,
+    "lattice_b": 6.314833118755932,
+    "lattice_c": 8.694163788715672,
+    "volume": 297.47879792633404,
+    "site_count": 12,
+    "elements": "Ga, Rb"
+  },
+  {
+    "material_id": "mp-aaaabupr",
+    "charge": 0.0,
+    "lattice_a": 8.813833434203852,
+    "lattice_b": 8.81383343345152,
+    "lattice_c": 8.813834469681154,
+    "volume": 669.0115741752583,
+    "site_count": 28,
+    "elements": "Mg, Sn"
+  },
+  {
+    "material_id": "mp-aaaabuxj",
+    "charge": 0.0,
+    "lattice_a": 5.331868,
+    "lattice_b": 5.331868,
+    "lattice_c": 9.119184,
+    "volume": 259.24760737498946,
+    "site_count": 20,
+    "elements": "Cr, F, O"
+  },
+  {
+    "material_id": "mp-aaaabvhg",
+    "charge": 0.0,
+    "lattice_a": 5.2514209727471854,
+    "lattice_b": 7.026797227504576,
+    "lattice_c": 8.108441884440252,
+    "volume": 275.27628245229727,
+    "site_count": 22,
+    "elements": "Li, Mn, O, P"
+  },
+  {
+    "material_id": "mp-aaaabvse",
+    "charge": 0.0,
+    "lattice_a": 4.775354,
+    "lattice_b": 4.775354,
+    "lattice_c": 9.430088,
+    "volume": 215.0437816852425,
+    "site_count": 18,
+    "elements": "Li, Nb, O, W"
+  },
+  {
+    "material_id": "mp-aaaabwcj",
+    "charge": 0.0,
+    "lattice_a": 13.46223148,
+    "lattice_b": 5.109245148242532,
+    "lattice_c": 7.20065323010127,
+    "volume": 486.8276103706157,
+    "site_count": 34,
+    "elements": "O, P, V"
+  },
+  {
+    "material_id": "mp-aaaabwdn",
+    "charge": 0.0,
+    "lattice_a": 3.874579,
+    "lattice_b": 7.724346,
+    "lattice_c": 8.322164,
+    "volume": 249.07062428494282,
+    "site_count": 10,
+    "elements": "Cl, O, W"
+  },
+  {
+    "material_id": "mp-aaaabwgm",
+    "charge": 0.0,
+    "lattice_a": 7.448605829162374,
+    "lattice_b": 11.148338717351887,
+    "lattice_c": 6.416354826446998,
+    "volume": 217.85493355381948,
+    "site_count": 10,
+    "elements": "Ga, S"
+  },
+  {
+    "material_id": "mp-aaaabwig",
+    "charge": 0.0,
+    "lattice_a": 7.5094357020063764,
+    "lattice_b": 7.5094357020063764,
+    "lattice_c": 7.744122,
+    "volume": 378.1964391882033,
+    "site_count": 24,
+    "elements": "O, W"
+  },
+  {
+    "material_id": "mp-aaaabwin",
+    "charge": 0.0,
+    "lattice_a": 4.264640566005182,
+    "lattice_b": 4.264640566005182,
+    "lattice_c": 7.589422,
+    "volume": 128.132989564584,
+    "site_count": 6,
+    "elements": "Ag, S"
+  },
+  {
+    "material_id": "mp-aaaabwjc",
+    "charge": 0.0,
+    "lattice_a": 5.847569,
+    "lattice_b": 6.032702,
+    "lattice_c": 6.254172,
+    "volume": 220.62618165607986,
+    "site_count": 8,
+    "elements": "Br, H"
+  },
+  {
+    "material_id": "mp-aaaabwlq",
+    "charge": 0.0,
+    "lattice_a": 14.153313793621004,
+    "lattice_b": 14.153313793621004,
+    "lattice_c": 14.153313353090383,
+    "volume": 217.78236244990742,
+    "site_count": 8,
+    "elements": "Cu, I"
+  },
+  {
+    "material_id": "mp-aaaabwma",
+    "charge": 0.0,
+    "lattice_a": 6.126698,
+    "lattice_b": 8.078885,
+    "lattice_c": 9.512086,
+    "volume": 470.8186608267129,
+    "site_count": 24,
+    "elements": "Li, P"
+  },
+  {
+    "material_id": "mp-aaaabwma",
+    "charge": 0.0,
+    "lattice_a": 6.126698,
+    "lattice_b": 8.078885,
+    "lattice_c": 9.512086,
+    "volume": 470.8186608267129,
+    "site_count": 24,
+    "elements": "Li, P"
+  }
+]
