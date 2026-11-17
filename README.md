@@ -67,7 +67,17 @@ Each finding states what was found, the rule that flagged it and why it may matt
 
 Each report has a `.md` file, a `.json` file and an `_assets/` folder of charts.
 
-## Tests
+## Assumptions
+
+- Input is one local file whose extension (`.csv`, `.json`, `.jsonl`/`.ndjson`, `.parquet`) states its format.
+- CSV files are UTF-8, comma-separated and have a header row. Values are text until type inference.
+- JSON is a top-level array of flat objects, one object per row; a missing key means a missing value. Nested JSON needs `--flatten-json`.
+- Only blank text, nulls and the exact markers `NA`, `N/A`, `n/a`, `#N/A`, `NULL`, `null`, `NaN` and `nan` count as missing.
+- Naive date-times are treated as UTC. "Future" means later than the time of the run.
+- Thresholds are defaults, not domain rules: 5% missing, 1.5 × IQR for outliers, |r| ≥ 0.9 for strong correlation, 2% for rare categories.
+- Findings are prompts for review; the tool never corrects or deletes data.
+
+## Checks
 
 ```sh
 make test     # 444 tests, each in its own temporary directory

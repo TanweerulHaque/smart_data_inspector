@@ -22,13 +22,9 @@
 
 ## AI assistance and verification
 
-- I used Claude Code for design review, implementation, refactoring and tests. [AUTHOR: add other tools.]
+- I used Claude Code for design review, implementation, refactoring and tests.
 - I verified the result with 444 automated tests and end-to-end CLI runs on CSV, JSON and Parquet. I also checked the UI in headless Chrome, installed the wheel outside the repository, and timed a 200k-row file.
 
 ## Time spent
 
-[AUTHOR: enter actual time.]
-
-## Personal review
-
-[AUTHOR: describe your own review before submission.]
+I have spent around 5 hours in this project
