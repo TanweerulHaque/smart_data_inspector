@@ -11,6 +11,7 @@ dependencies = [
     "pandas>=2.2,<3.1",
     "numpy>=1.26,<3",
     "rich>=13.9,<15",
+    "matplotlib>=3.8,<4",
 ]
 
 [project.optional-dependencies]
@@ -22,6 +23,7 @@ addopts = "-ra"
 filterwarnings = ["error"]
 
 [project.scripts]
+sdi = "smart_data_inspector.cli.main:main"
 smart-data-inspector = "smart_data_inspector.cli.main:main"
 
 

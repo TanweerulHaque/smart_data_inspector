@@ -45,6 +45,12 @@ class NumericSummary:
     q1: float | None
     q3: float | None
     nonfinite_count: int = 0
+    variance: float | None = None
+    mode: float | None = None
+    skewness: float | None = None
+    kurtosis: float | None = None
+    zero_count: int = 0
+    zero_fraction: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -52,6 +58,8 @@ class CategoricalSummary:
     distinct_count: int
     top_values: list[tuple[Scalar, int]]
     likely_identifier: bool
+    rare_count: int = 0
+    rare_examples: list[Scalar] = field(default_factory=list)
 
 
 @dataclass
@@ -76,6 +84,59 @@ class ColumnSummary:
     numeric: NumericSummary | None
     likely_identifier: bool = False
     unexpected_values: list[Scalar] = field(default_factory=list)
+    text: "TextSummary | None" = None
+    rare_count: int = 0
+    rare_examples: list[Scalar] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class TextSummary:
+    """Compact string evidence used by narrative and formatting checks."""
+    count: int
+    empty_count: int
+    whitespace_count: int
+    casefold_collision_count: int
+    minimum_length: int | None
+    maximum_length: int | None
+    mean_length: float | None
+
+
+@dataclass(frozen=True)
+class MissingPattern:
+    columns: tuple[str, ...]
+    count: int
+
+
+@dataclass(frozen=True)
+class MissingnessProfile:
+    total_missing: int
+    total_cells: int
+    row_missing_counts: list[int]
+    high_missing_rows: int
+    patterns: list[MissingPattern]
+    cooccurrences: list[tuple[str, str, int]]
+
+
+@dataclass(frozen=True)
+class Relationship:
+    left: str
+    right: str
+    pearson: float | None
+    spearman: float | None
+    pair_count: int
+
+
+@dataclass(frozen=True)
+class RelationshipProfile:
+    relationships: list[Relationship]
+    numeric_columns: list[str]
+
+
+@dataclass(frozen=True)
+class ChartAsset:
+    key: str
+    relative_path: str
+    caption: str
 
 
 @dataclass(frozen=True)
@@ -101,3 +162,6 @@ class Inspection:
     findings: list[Finding]
     memory_bytes: int
     file_size_bytes: int | None
+    missingness: MissingnessProfile | None = None
+    relationships: RelationshipProfile | None = None
+    assets: list[ChartAsset] = field(default_factory=list)

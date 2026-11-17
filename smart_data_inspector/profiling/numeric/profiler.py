@@ -1,6 +1,7 @@
 """Finite-value numeric summaries with overflow-resistant scaling."""
 
 import math
+import warnings
 from decimal import Decimal
 from statistics import mean
 from typing import cast
@@ -31,8 +32,26 @@ def profile_numeric(series: pd.Series) -> NumericSummary:
         std = float(normalized.std(ddof=1)) * scale if len(finite) > 1 else None
     if std is not None and not math.isfinite(std):
         std = None
+    variance = std * std if std is not None and abs(std) <= math.sqrt(np.finfo("float64").max) else None
+    modes = finite.mode()
+    mode = float(modes.iloc[0]) if not modes.empty else None
+    # Moment calculations on raw values overflow for valid very large floats.
+    # Scaling preserves dimensionless skewness/kurtosis while avoiding that failure.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        skewness = float(normalized.skew()) if len(finite) >= 3 else None
+        kurtosis = float(normalized.kurt()) if len(finite) >= 4 else None
+    for value_name in ("skewness", "kurtosis"):
+        value = locals()[value_name]
+        if value is not None and not math.isfinite(value):
+            if value_name == "skewness":
+                skewness = None
+            else:
+                kurtosis = None
+    zero_count = int((finite == 0).sum())
     return NumericSummary(
         len(finite), float(finite.min()), float(finite.max()), average,
         float(quartiles.loc[0.5]), std,
         float(quartiles.loc[0.25]), float(quartiles.loc[0.75]), nonfinite,
+        variance, mode, skewness, kurtosis, zero_count, zero_count / len(finite),
     )

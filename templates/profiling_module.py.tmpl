@@ -1,0 +1,18 @@
+"""One focused, pure profiling module."""
+
+from dataclasses import dataclass
+
+import pandas as pd
+
+from smart_data_inspector.config import InspectionConfig
+
+
+@dataclass(frozen=True)
+class ExampleProfile:
+    count: int
+
+
+def profile_example(frame: pd.DataFrame, config: InspectionConfig | None = None) -> ExampleProfile:
+    """Return one structured result without changing ``frame``."""
+    del config
+    return ExampleProfile(count=len(frame))

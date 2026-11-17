@@ -32,4 +32,8 @@ def profile_categorical(series: pd.Series, config: InspectionConfig | None = Non
     counts = keys.value_counts(sort=False).sort_values(ascending=False, kind="stable")
     representatives = dict(zip(keys, present))
     top = [(representatives[key], int(count)) for key, count in counts.iloc[:config.top_values].items()]
-    return CategoricalSummary(int(keys.nunique()), top, is_likely_identifier(series, config))
+    rare_keys = counts[counts / len(present) <= config.rare_category_threshold]
+    return CategoricalSummary(
+        int(keys.nunique()), top, is_likely_identifier(series, config),
+        int(len(rare_keys)), [representatives[key] for key in rare_keys.index[:config.top_values]],
+    )

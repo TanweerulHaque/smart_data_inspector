@@ -16,15 +16,24 @@ class InspectionConfig:
     identifier_unique_ratio: float = 0.95
     identifier_min_count: int = 10
     outlier_min_count: int = 4
+    near_constant_threshold: float = 0.95
+    excessive_zero_threshold: float = 0.90
+    rare_category_threshold: float = 0.02
+    row_missing_threshold: float = 0.50
+    correlation_threshold: float = 0.90
+    chart_max_columns: int = 6
+    sample_rows: int = 100_000
 
     def __post_init__(self) -> None:
-        for name in ("missing_threshold", "mixed_numeric_threshold", "identifier_unique_ratio"):
+        for name in ("missing_threshold", "mixed_numeric_threshold", "identifier_unique_ratio",
+                     "near_constant_threshold", "excessive_zero_threshold", "rare_category_threshold",
+                     "row_missing_threshold", "correlation_threshold"):
             value = getattr(self, name)
             if not isfinite(value) or not 0 < value <= 1:
                 raise ValueError(f"{name.replace('_', ' ').capitalize()} must be greater than 0 and at most 1.")
         if not isfinite(self.iqr_multiplier) or self.iqr_multiplier <= 0:
             raise ValueError("IQR multiplier must be finite and greater than 0.")
-        for name in ("top_values", "identifier_min_count", "outlier_min_count"):
+        for name in ("top_values", "identifier_min_count", "outlier_min_count", "chart_max_columns", "sample_rows"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value < 1:
                 raise ValueError(f"{name.replace('_', ' ').capitalize()} must be a positive integer.")

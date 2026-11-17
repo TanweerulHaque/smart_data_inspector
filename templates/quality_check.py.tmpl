@@ -1,0 +1,10 @@
+"""One explainable quality check."""
+
+from smart_data_inspector.models import Finding
+
+
+def check_example(column: str, affected_count: int, threshold: int) -> list[Finding]:
+    if affected_count < threshold:
+        return []
+    return [Finding("Example check", column, "info", f"{affected_count} affected records.",
+                    f"affected count >= {threshold}.", "Review this observation in context.")]

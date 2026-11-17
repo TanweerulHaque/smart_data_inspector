@@ -1,7 +1,9 @@
 """Inspect one local CSV/JSON file and write an explainable Markdown report."""
 
 import argparse
+from datetime import datetime, timezone
 from pathlib import Path
+from uuid import uuid4
 
 from rich.console import Console
 from rich.table import Table
@@ -12,12 +14,13 @@ from ..inspector import inspect_dataset
 from ..loaders import InspectionError, load_dataset
 from ..report import render_report
 from ..utils.files import write_text_atomic
+from ..profiling.missingness.profiler import normalize_missing
 
 
 def _add_arguments(parser: argparse.ArgumentParser) -> None:
     defaults = InspectionConfig()
     parser.add_argument("input", type=Path, help="one UTF-8 .csv or flat .json file")
-    parser.add_argument("-o", "--output", type=Path, help="Markdown path; default: <input-stem>.report.md")
+    parser.add_argument("-o", "--output", type=Path, help="Markdown path; default: reports/<input-stem>_<run-id>.md")
     parser.add_argument("--missing-threshold", type=float, default=defaults.missing_threshold, metavar="FRACTION",
                         help="high missingness threshold in (0, 1]; default: 0.05 (5%%)")
     parser.add_argument("--iqr-multiplier", type=float, default=defaults.iqr_multiplier,
@@ -26,6 +29,15 @@ def _add_arguments(parser: argparse.ArgumentParser) -> None:
                         help="maximum frequent categorical values; default: 5")
     parser.add_argument("--missing-value", action="append", metavar="TOKEN",
                         help="repeat to replace default missing markers; blanks/nulls remain missing")
+    parser.add_argument("--no-charts", action="store_true", help="skip optional PNG charts")
+
+
+def _run_id() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "_" + uuid4().hex[:8]
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -42,7 +54,9 @@ def main(argv: list[str] | None = None) -> int:
             missing_values=tuple(args.missing_value) if args.missing_value is not None else DEFAULT_MISSING_VALUES,
         )
         dataset = load_dataset(args.input)
-        output = (args.output or dataset.source.with_suffix(".report.md")).expanduser()
+        run_id = _run_id()
+        root = _project_root()
+        output = (args.output or root / "reports" / f"{dataset.source.stem}_{run_id}.md").expanduser()
         if output.resolve() == dataset.source.resolve() or (
             output.exists() and output.samefile(dataset.source)
         ):
@@ -52,6 +66,12 @@ def main(argv: list[str] | None = None) -> int:
         if output.is_dir():
             raise InspectionError("Output must be a Markdown file, not a directory.")
         inspection = inspect_dataset(dataset, config)
+        if not args.no_charts:
+            from ..visualizations import generate_charts
+            assets_dir = root / "assets" / f"{dataset.source.stem}_{run_id}"
+            inspection.assets = generate_charts(
+                normalize_missing(dataset.to_frame(), config.missing_values), inspection, assets_dir, output.parent,
+            )
         report = render_report(inspection)
         write_text_atomic(output, report)
     except (InspectionError, ValueError, ArithmeticError, RecursionError) as exc:
@@ -67,6 +87,8 @@ def main(argv: list[str] | None = None) -> int:
                   f"Additional duplicate rows: {inspection.duplicate_rows:,}", markup=False)
     console.print(f"Missing cells: {sum(column.missing_count for column in inspection.columns):,} | "
                   f"Approximate DataFrame memory: {inspection.memory_bytes:,} bytes", markup=False)
+    if inspection.assets:
+        console.print(f"Charts: {len(inspection.assets):,} PNG asset(s)", markup=False)
     if inspection.findings:
         table = Table(title=f"{len(inspection.findings)} potential quality findings")
         for heading in ("Severity", "Check", "Column", "Evidence"):

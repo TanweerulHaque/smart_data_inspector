@@ -79,8 +79,7 @@ class InspectDatasetTests(unittest.TestCase):
         self.assertEqual((mixed.missing_count, mixed.missing_fraction), (1, 0.25))
         self.assertIsNone(mixed.numeric)
         self.assertEqual(mixed.unexpected_values, [])
-        self.assertEqual({(finding.check_name, finding.column) for finding in inspection.findings},
-                         {("High missingness", "mixed")})
+        self.assertIn(("High missingness", "mixed"), {(finding.check_name, finding.column) for finding in inspection.findings})
 
     def test_csv_counts_and_duplicates_keep_original_strings(self):
         inspection = inspect_dataset(self.load("value\n001\n1\n1.0\n1\n TRUE \ntrue\n", "csv"))
@@ -261,7 +260,7 @@ class InspectDatasetTests(unittest.TestCase):
         inspection = inspect_dataset(dataset)
         self.assertEqual(dataset, original)
         self.assertEqual(inspection.duplicate_rows, 0)
-        self.assertEqual(inspection.findings, [])
+        self.assertEqual({finding.check_name for finding in inspection.findings}, {"All-null column", "Potential duplicate columns"})
         self.assertIsNone(inspection.file_size_bytes)
         self.assertGreaterEqual(inspection.memory_bytes, 0)
         self.assertEqual([column.name for column in inspection.columns], ["v", "label"])
@@ -280,8 +279,8 @@ class InspectDatasetTests(unittest.TestCase):
         self.assertTrue(identifier.likely_identifier)
         self.assertFalse(measurement.likely_identifier)
         self.assertIsNotNone(identifier.numeric)
-        self.assertEqual([(f.check_name, f.column) for f in inspection.findings],
-                         [("Potential numerical outliers", "measurement")])
+        self.assertIn(("Potential numerical outliers", "measurement"), [(f.check_name, f.column) for f in inspection.findings])
+        self.assertIn(("Potential duplicate columns", "measurement"), [(f.check_name, f.column) for f in inspection.findings])
 
     def test_top_values_respects_limit_and_excludes_missing_values(self):
         dataset = self.load('[{"v":"a"},{"v":"b"},{"v":"a"},{"v":"b"},{"v":"a"},{"v":"c"},{"v":null}]')

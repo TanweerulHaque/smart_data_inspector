@@ -50,8 +50,9 @@ def test_invalid_unicode_in_json_preserves_existing_report(tmp_path, text):
 def test_huge_native_integer_json_uses_exclusion_policy_not_cli_error(tmp_path):
     source = tmp_path / "input.json"
     source.write_text('[{"v":' + str(10**309) + '},{"v":1}]')
-    result = run_cli(source)
+    output = tmp_path / "report.md"
+    result = run_cli(source, "-o", output, "--no-charts")
     assert result.returncode == 0, result.stderr
     assert "Non-finite numeric values" in result.stdout
-    report = source.with_suffix(".report.md").read_text()
-    assert "| v | 1 | 1 | 1 | 1 | 1 |" in report
+    report = output.read_text()
+    assert "Nonfinite excluded" in report

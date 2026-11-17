@@ -14,6 +14,7 @@ from ..categorical.profiler import is_likely_identifier
 
 INTEGER = re.compile(r"[+-]?[0-9]+\Z")
 NUMBER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?\Z")
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}(?:[T ][0-2]\d:[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?\Z")
 
 
 def classify(value: object, csv_input: bool = False) -> str:
@@ -24,6 +25,9 @@ def classify(value: object, csv_input: bool = False) -> str:
         return "integer"
     if isinstance(value, (float, Decimal, np.floating)):
         return "number"
+    if isinstance(value, str) and ISO_DATE.fullmatch(value.strip()):
+        # Restrict inference to ISO-like forms to avoid converting ambiguous codes/dates.
+        return "datetime"
     if csv_input and isinstance(value, str):
         text = value.strip()
         if text.casefold() in {"true", "false"}:
