@@ -1,16 +1,28 @@
 [project]
 name = "smart-data-inspector"
-version = "0.1.0"
+version = "0.2.0"
 description = "A small CLI for inspecting CSV and flat JSON datasets with Markdown reports."
 readme = "README.md"
 authors = [
     {name = "Tanweerul Haque",email = "tan.haque@gmail.com"}
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pandas>=2.2,<3.1",
+    "numpy>=1.26,<3",
+    "rich>=13.9,<15",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = ["error"]
 
 [project.scripts]
-smart-data-inspector = "smart_data_inspector.cli:main"
+smart-data-inspector = "smart_data_inspector.cli.main:main"
 
 
 [build-system]

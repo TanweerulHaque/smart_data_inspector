@@ -11,10 +11,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HEADINGS = [
     "# Data Inspection Report",
     "## Overview",
-    "## Data quality findings",
-    "## Columns",
+    "## Overall summary",
+    "## Schema inventory",
+    "## Missing values",
+    "## Duplicate rows",
     "## Numeric summaries",
     "## Categorical summaries",
+    "## Data quality findings",
     "## Rules and limitations",
 ]
 
@@ -32,7 +35,7 @@ class CliTests(unittest.TestCase):
 
     def run_cli(self, *arguments):
         return subprocess.run(
-            [sys.executable, "-m", "smart_data_inspector", *map(str, arguments)],
+            [sys.executable, "-m", "smart_data_inspector", "inspect", *map(str, arguments)],
             cwd=PROJECT_ROOT,
             capture_output=True,
             check=False,
@@ -50,7 +53,14 @@ class CliTests(unittest.TestCase):
     def successful_report(self, result, output):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(result.stderr, "")
-        self.assertEqual(Path(result.stdout.strip()).resolve(), output.resolve())
+        self.assertIn("Smart Data Inspector", result.stdout)
+        self.assertIn("Rows:", result.stdout)
+        self.assertIn("Columns:", result.stdout)
+        self.assertIn("Additional duplicate rows:", result.stdout)
+        self.assertIn("Missing cells:", result.stdout)
+        self.assertIn("Approximate DataFrame memory:", result.stdout)
+        # Rich may wrap long paths; ignore layout without treating stdout as a path.
+        self.assertIn("Report:" + "".join(str(output).split()), "".join(result.stdout.split()))
         self.assertTrue(output.is_file())
         return output.read_text(encoding="utf-8")
 
@@ -65,7 +75,12 @@ class CliTests(unittest.TestCase):
             "18,beta,2\nNA,beta,3\n7,alpha,1\n",
         )
         original = source.read_bytes()
-        report = self.successful_report(self.run_cli(source), source.with_suffix(".report.md"))
+        result = self.run_cli(source)
+        report = self.successful_report(result, source.with_suffix(".report.md"))
+        self.assertIn("Rows: 5 | Columns: 3 | Additional duplicate rows: 1", result.stdout)
+        self.assertIn("Missing cells: 1", result.stdout)
+        for heading in ("Severity", "Check", "Column", "Evidence"):
+            self.assertIn(heading, result.stdout)
         self.assertEqual([line for line in report.splitlines() if line.startswith(("# ", "## "))], HEADINGS)
         for text in ("score", "category", "unstable", "10.75", "alpha", "beta"):
             self.assertIn(text, report)
@@ -96,7 +111,8 @@ class CliTests(unittest.TestCase):
                     source, "-o", output, "--missing-threshold", threshold, *missing_options,
                 ), output)
                 findings = self.section(report, "## Data quality findings")
-                self.assertEqual("High missingness" in findings, has_finding)
+                self.assertEqual("| High missingness |" in findings, has_finding)
+                self.assertEqual("| Missing values |" in findings, not has_finding)
 
     def test_top_values_option_limits_categorical_entries(self):
         source = self.write("categories.json", json.dumps([
@@ -147,7 +163,9 @@ class CliTests(unittest.TestCase):
         output = self.write("existing.md", "keep existing report")
         options = [
             ("--missing-threshold", value) for value in ("0", "-0.1", "1.1", "nan", "inf", "-inf", "nope")
-        ] + [("--top-values", value) for value in ("0", "-1", "1.5", "nope")]
+        ] + [("--top-values", value) for value in ("0", "-1", "1.5", "nope")] + [
+            ("--iqr-multiplier", value) for value in ("0", "-1", "nan", "inf", "-inf", "nope")
+        ]
         for option, value in options:
             with self.subTest(option=option, value=value):
                 self.assert_error(self.run_cli(source, "-o", output, option, value))

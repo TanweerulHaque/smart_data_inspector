@@ -1,20 +1,23 @@
 """Exact summaries and quality-rule behavior for the public inspection API."""
 
+import copy
 import json
+import math
 import tempfile
 import unittest
-from decimal import Decimal
 from pathlib import Path
 
 from smart_data_inspector.inspector import InspectionConfig, inspect_dataset
 from smart_data_inspector.loaders import load_dataset
+from smart_data_inspector.models import Dataset
 
 
 class InspectionConfigTests(unittest.TestCase):
     def test_defaults_and_valid_boundaries(self):
         config = InspectionConfig()
-        self.assertEqual(config.missing_threshold, 0.2)
-        self.assertEqual(config.top_values, 3)
+        self.assertEqual(config.missing_threshold, 0.05)
+        self.assertEqual(config.top_values, 5)
+        self.assertEqual(config.iqr_multiplier, 1.5)
         self.assertEqual(set(config.missing_values), {"", "na", "n/a", "null", "none", "nan"})
         self.assertEqual(InspectionConfig(missing_threshold=1, top_values=1).top_values, 1)
 
@@ -51,19 +54,20 @@ class InspectDatasetTests(unittest.TestCase):
         ))
         columns = {column.name: column for column in inspection.columns}
         self.assertEqual([column.inferred_type for column in inspection.columns],
-                         ["integer", "number", "boolean", "string", "mixed"])
+                         ["integer", "number", "boolean", "string", "string"])
         integer = columns["integer"]
         self.assertEqual(integer.type_counts, {"integer": 4})
         self.assertEqual(integer.distinct_count, 3)
         self.assertEqual(integer.top_values[0], ("1", 2))
         self.assertCountEqual(integer.top_values, [("1", 2), ("001", 1), ("01", 1)])
         assert integer.numeric is not None
-        self.assertEqual(integer.numeric.mean, Decimal(1))
+        assert integer.numeric.mean is not None
+        self.assertAlmostEqual(integer.numeric.mean, 1.0)
         number = columns["number"].numeric
         assert number is not None
         self.assertEqual(number.count, 4)
         self.assertEqual((number.minimum, number.maximum, number.mean),
-                         (Decimal("-.5"), Decimal(3), Decimal("1.5")))
+                         (-0.5, 3.0, 1.5))
         self.assertEqual(columns["boolean"].type_counts, {"boolean": 4})
         self.assertIsNone(columns["boolean"].numeric)
         self.assertEqual(columns["label"].distinct_count, 3)
@@ -73,10 +77,10 @@ class InspectDatasetTests(unittest.TestCase):
         mixed = columns["mixed"]
         self.assertEqual(mixed.type_counts, {"integer": 1, "string": 1, "number": 1})
         self.assertEqual((mixed.missing_count, mixed.missing_fraction), (1, 0.25))
-        assert mixed.numeric is not None
-        self.assertEqual((mixed.numeric.count, mixed.numeric.mean), (2, Decimal("1.5")))
-        self.assertEqual({(finding.rule, finding.column) for finding in inspection.findings},
-                         {("High missingness", "mixed"), ("Mixed value types", "mixed")})
+        self.assertIsNone(mixed.numeric)
+        self.assertEqual(mixed.unexpected_values, [])
+        self.assertEqual({(finding.check_name, finding.column) for finding in inspection.findings},
+                         {("High missingness", "mixed")})
 
     def test_csv_counts_and_duplicates_keep_original_strings(self):
         inspection = inspect_dataset(self.load("value\n001\n1\n1.0\n1\n TRUE \ntrue\n", "csv"))
@@ -96,10 +100,10 @@ class InspectDatasetTests(unittest.TestCase):
         self.assertEqual(column.distinct_count, 5)
         self.assertEqual(inspection.duplicate_rows, 1)
         self.assertEqual(column.top_values[0], (1, 2))
-        self.assertIs(type(column.top_values[0][0]), int)
+        self.assertNotIsInstance(column.top_values[0][0], (str, bool))
         assert column.numeric is not None
         self.assertEqual(column.numeric.count, 3)
-        self.assertEqual((column.numeric.minimum, column.numeric.maximum), (Decimal(0), Decimal(1)))
+        self.assertEqual((column.numeric.minimum, column.numeric.maximum), (0.0, 1.0))
 
     def test_json_strings_are_not_inferred_as_numbers_or_booleans(self):
         inspection = inspect_dataset(self.load('[{"v":"1"},{"v":"1.5"},{"v":"true"}]'))
@@ -108,15 +112,18 @@ class InspectDatasetTests(unittest.TestCase):
         self.assertEqual(column.type_counts, {"string": 3})
         self.assertIsNone(column.numeric)
 
-    def test_numeric_mean_uses_decimal_not_binary_float(self):
+    def test_numeric_mean_is_accurate_within_floating_point_tolerance(self):
         column = inspect_dataset(self.load('[{"v":0.1},{"v":0.2},{"v":0.3}]')).columns[0]
         self.assertEqual(column.inferred_type, "number")
         assert column.numeric is not None
-        self.assertEqual((column.numeric.minimum, column.numeric.maximum, column.numeric.mean),
-                         (Decimal("0.1"), Decimal("0.3"), Decimal("0.2")))
-        self.assertIsInstance(column.numeric.mean, Decimal)
+        assert column.numeric.minimum is not None
+        assert column.numeric.maximum is not None
+        assert column.numeric.mean is not None
+        self.assertAlmostEqual(column.numeric.minimum, 0.1)
+        self.assertAlmostEqual(column.numeric.maximum, 0.3)
+        self.assertAlmostEqual(column.numeric.mean, 0.2)
 
-    def test_large_finite_numbers_have_a_finite_decimal_mean(self):
+    def test_large_finite_numbers_have_a_finite_mean_without_sum_overflow(self):
         for text, suffix in (
             ("v\n1e308\n1e308\n", "csv"),
             ('[{"v":1e308},{"v":1e308}]', "json"),
@@ -124,11 +131,11 @@ class InspectDatasetTests(unittest.TestCase):
             with self.subTest(format=suffix):
                 numeric = inspect_dataset(self.load(text, suffix)).columns[0].numeric
                 assert numeric is not None
+                assert numeric.mean is not None
                 self.assertEqual(numeric.count, 2)
-                self.assertEqual((numeric.minimum, numeric.maximum, numeric.mean),
-                                 (Decimal("1e308"), Decimal("1e308"), Decimal("1e308")))
-                self.assertIsInstance(numeric.mean, Decimal)
-                self.assertTrue(numeric.mean.is_finite())
+                self.assertEqual((numeric.minimum, numeric.maximum), (1e308, 1e308))
+                self.assertTrue(math.isclose(numeric.mean, 1e308, rel_tol=1e-14))
+                self.assertTrue(math.isfinite(numeric.mean))
 
     def test_numeric_mean_preserves_small_values_during_cancellation(self):
         for text, suffix in (
@@ -138,12 +145,11 @@ class InspectDatasetTests(unittest.TestCase):
             with self.subTest(format=suffix):
                 numeric = inspect_dataset(self.load(text, suffix)).columns[0].numeric
                 assert numeric is not None
+                assert numeric.mean is not None
                 self.assertEqual(numeric.count, 3)
-                self.assertEqual((numeric.minimum, numeric.maximum),
-                                 (Decimal("-1e30"), Decimal("1e30")))
-                self.assertEqual(numeric.mean, Decimal(1) / 3)
-                self.assertIsInstance(numeric.mean, Decimal)
-                self.assertTrue(numeric.mean.is_finite())
+                self.assertEqual((numeric.minimum, numeric.maximum), (-1e30, 1e30))
+                self.assertAlmostEqual(numeric.mean, 1 / 3)
+                self.assertTrue(math.isfinite(numeric.mean))
 
     def test_default_missing_markers_exclude_zero_and_false_without_mutating_input(self):
         values = [None, "", " \t", "NA", " n/A ", "NULL", " none ", "NaN", 0, False, "ok"]
@@ -181,7 +187,7 @@ class InspectDatasetTests(unittest.TestCase):
         self.assertEqual(a.top_values, [])
         self.assertIsNone(a.numeric)
         self.assertEqual(b.top_values, [("x", 4), ("y", 1)])
-        duplicate_findings = [finding for finding in inspection.findings if finding.rule == "Duplicate rows"]
+        duplicate_findings = [finding for finding in inspection.findings if finding.check_name == "Duplicate rows"]
         self.assertEqual(len(duplicate_findings), 1)
         self.assertIsNone(duplicate_findings[0].column)
         self.assertTrue(duplicate_findings[0].message)
@@ -191,10 +197,91 @@ class InspectDatasetTests(unittest.TestCase):
         for threshold, expected_count in ((0.2, 1), (0.200001, 0), (1, 0)):
             with self.subTest(threshold=threshold):
                 result = inspect_dataset(dataset, InspectionConfig(missing_threshold=threshold))
-                self.assertEqual(sum(f.rule == "High missingness" for f in result.findings), expected_count)
+                self.assertEqual(sum(f.check_name == "High missingness" for f in result.findings), expected_count)
         all_null = inspect_dataset(self.load('[{"v":null},{}]'), InspectionConfig(missing_threshold=1))
-        self.assertIn("High missingness", [finding.rule for finding in all_null.findings])
+        self.assertIn("High missingness", [finding.check_name for finding in all_null.findings])
         self.assertEqual(all_null.duplicate_rows, 1)
+
+    def test_dominantly_numeric_csv_has_subset_until_threshold_is_raised(self):
+        dataset = self.load("measurement\n1\n2\n3\n4\nbad\nNA\n", "csv")
+        result = inspect_dataset(dataset)
+        column = result.columns[0]
+        self.assertEqual(column.inferred_type, "mixed")
+        self.assertEqual(column.unexpected_values, ["bad"])
+        assert column.numeric is not None
+        assert column.numeric.mean is not None
+        self.assertEqual(column.numeric.count, 4)
+        self.assertAlmostEqual(column.numeric.mean, 2.5)
+        self.assertIn("Mixed value types", [f.check_name for f in result.findings])
+        categorical = inspect_dataset(dataset, InspectionConfig(mixed_numeric_threshold=0.81))
+        self.assertEqual(categorical.columns[0].inferred_type, "string")
+        self.assertIsNone(categorical.columns[0].numeric)
+        self.assertNotIn("Mixed value types", [f.check_name for f in categorical.findings])
+
+    def test_nonfinite_csv_values_are_excluded_and_have_an_explicit_finding(self):
+        dataset = self.load("v\n1\n+inf\n-inf\n3\n", "csv")
+        result = inspect_dataset(dataset)
+        column = result.columns[0]
+        self.assertEqual(column.missing_count, 0)
+        assert column.numeric is not None
+        assert column.numeric.mean is not None
+        self.assertEqual((column.numeric.count, column.numeric.nonfinite_count), (2, 2))
+        self.assertAlmostEqual(column.numeric.mean, 2.0)
+        self.assertEqual([(f.check_name, f.column) for f in result.findings],
+                         [("Non-finite numeric values", "v")])
+        self.assertIn("2 numeric value(s)", result.findings[0].evidence)
+
+    def test_findings_keep_check_identity_separate_from_rule_expression(self):
+        inspection = inspect_dataset(self.load('[{"v":null},{"v":1}]'))
+        finding = next(f for f in inspection.findings if f.check_name == "High missingness")
+        self.assertEqual(finding.column, "v")
+        self.assertEqual(finding.severity, "warning")
+        self.assertIn(">= 5.0%", finding.rule)
+        self.assertIn("1 missing of 2", finding.evidence)
+        self.assertIn(finding.evidence, finding.message)
+        self.assertIn(finding.explanation, finding.message)
+
+    def test_inspection_does_not_mutate_dataset_or_source_across_configurations(self):
+        dataset = self.load('v,label\n1, NA \n2,ok\n3,ok\n100, NA \n', 'csv')
+        original = copy.deepcopy(dataset)
+        source_bytes = dataset.source.read_bytes()
+        first = inspect_dataset(dataset)
+        second = inspect_dataset(dataset, InspectionConfig(missing_values=("ok",), top_values=1,
+                                                           iqr_multiplier=3))
+        self.assertEqual(dataset, original)
+        self.assertEqual(dataset.source.read_bytes(), source_bytes)
+        self.assertEqual(first.columns[1].top_values, [("ok", 2)])
+        self.assertEqual(second.columns[1].top_values, [(" NA ", 2)])
+        self.assertEqual(first.config, InspectionConfig())
+        self.assertEqual(first.columns, inspect_dataset(dataset).columns)
+
+    def test_zero_rows_are_safe_for_the_reusable_api(self):
+        dataset = Dataset(self.root / "not-on-disk.csv", "CSV", ["v", "label"], [])
+        original = copy.deepcopy(dataset)
+        inspection = inspect_dataset(dataset)
+        self.assertEqual(dataset, original)
+        self.assertEqual(inspection.duplicate_rows, 0)
+        self.assertEqual(inspection.findings, [])
+        self.assertIsNone(inspection.file_size_bytes)
+        self.assertGreaterEqual(inspection.memory_bytes, 0)
+        self.assertEqual([column.name for column in inspection.columns], ["v", "label"])
+        for column in inspection.columns:
+            self.assertEqual(column.inferred_type, "empty")
+            self.assertEqual((column.missing_count, column.non_null_count), (0, 0))
+            self.assertEqual(column.missing_fraction, 0)
+            self.assertEqual(column.top_values, [])
+            self.assertIsNone(column.numeric)
+
+    def test_numeric_identifier_skips_outliers_but_measurement_does_not(self):
+        values = [1, 2, 3, 4, 100]
+        dataset = self.load(json.dumps([{"sample_id":v, "measurement":v} for v in values]))
+        inspection = inspect_dataset(dataset)
+        identifier, measurement = inspection.columns
+        self.assertTrue(identifier.likely_identifier)
+        self.assertFalse(measurement.likely_identifier)
+        self.assertIsNotNone(identifier.numeric)
+        self.assertEqual([(f.check_name, f.column) for f in inspection.findings],
+                         [("Potential numerical outliers", "measurement")])
 
     def test_top_values_respects_limit_and_excludes_missing_values(self):
         dataset = self.load('[{"v":"a"},{"v":"b"},{"v":"a"},{"v":"b"},{"v":"a"},{"v":"c"},{"v":null}]')
