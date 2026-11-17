@@ -4,7 +4,7 @@
     "name": "smart-data-inspector",
     "version": "0.3.0"
   },
-  "generated_at": "2026-11-17T15:22:37+00:00",
+  "generated_at": "2026-11-17T15:41:11+00:00",
   "source": {
     "name": "materials_piezoelectric_properties.parquet",
     "path": "data/demo/materials_piezoelectric_properties.parquet",
